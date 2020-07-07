@@ -95,7 +95,6 @@ CREATE TABLE `task_group` (
   `order` INT(10) NOT NULL COMMENT 'Share order with task, treat this entity as a normal task',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT fk_task_goal FOREIGN KEY (`task_goal_id`) REFERENCES task_group(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 ALTER TABLE `task` ADD FOREIGN KEY (`user_id`) REFERENCES `user`(`id`);
