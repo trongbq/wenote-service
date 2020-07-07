@@ -1,5 +1,5 @@
 # WeNote Entity Relationship Diagram
-Refer to [schema.sql](docs/sql/schema.sql)
+Refer to [schema.sql](./schema.sql)
 
 ![erd](./erd.png)
 
