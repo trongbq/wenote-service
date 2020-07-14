@@ -1,13 +1,30 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"wenote/internal/http/rest"
+	"wenote/internal/http/rest/handler"
+	"wenote/internal/storage"
+	"wenote/internal/user"
+
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
+	// Init storage
+	storage, err := storage.NewStorage()
+	if err != nil {
+		panic(err)
+	}
+
+	// Init services
+	userService := user.NewService(storage)
+
+	// Init handlers
+	userHandler := handler.NewUserHandler(userService)
+	serviceHandler := rest.NewServiceHandler(userHandler)
+
+	// Setup routes and server
 	router := gin.Default()
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	rest.Routes(router, serviceHandler)
 	router.Run()
 }
