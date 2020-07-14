@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"time"
 	"wenote/internal/user"
 
 	"github.com/jinzhu/gorm"
@@ -24,16 +23,6 @@ func NewStorage() (*Storage, error) {
 	db.LogMode(true)
 
 	return &Storage{db}, nil
-}
-
-// User models for gorm
-type User struct {
-	ID         int
-	Name       string
-	Email      string
-	PictureURL string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
 }
 
 // GetAllUsers return all user in db
