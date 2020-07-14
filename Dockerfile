@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 
 # Build the app
-RUN go build -o main main.go
+RUN go build -tags api -o ./bin/wenote-api ./cmd/wenote-api/.
 
 # Run the app
-CMD ["/build/main"]
+CMD ["/build/bin/wenote-api"]

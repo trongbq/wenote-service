@@ -3,10 +3,10 @@ IMAGE_NAME_LATEST := $(IMAGE_NAME):latest
 CONTAINER_NAME := $(IMAGE_NAME)-container
 
 run:
-	go run main.go
+	go run cmd/wenote-api/main.go
 
 build:
-	go build -o main main.go
+	go build -tags api -o ./bin/wenote-api ./cmd/wenote-api/.
 
 docker-build:
 	docker build -f Dockerfile -t $(IMAGE_NAME_LATEST) .
