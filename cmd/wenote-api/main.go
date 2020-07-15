@@ -1,6 +1,7 @@
 package main
 
 import (
+	"wenote/internal/auth"
 	"wenote/internal/http/rest"
 	"wenote/internal/http/rest/handler"
 	"wenote/internal/storage"
@@ -18,10 +19,12 @@ func main() {
 
 	// Init services
 	userService := user.NewService(storage)
+	authService := auth.NewService(userService)
 
 	// Init handlers
 	userHandler := handler.NewUserHandler(userService)
-	serviceHandler := rest.NewServiceHandler(userHandler)
+	authHandler := handler.NewAuthHandler(authService)
+	serviceHandler := rest.NewServiceHandler(userHandler, authHandler)
 
 	// Setup routes and server
 	router := gin.Default()

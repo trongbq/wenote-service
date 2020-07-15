@@ -6,12 +6,11 @@ import (
 )
 
 const (
-	ErrorCodeUnauthorized   = "UNAUTHORIZED"
-	ErrorCodeBadRequest     = "BAD_REQUEST"
-	ErrorCodeInvalidRequest = "INVALID_REQUEST"
-	ErrorCodeNotFound       = "NOT_FOUND"
-	ErrorCodeNotImplement   = "NOT_IMPLEMENT"
-	ErrorCodeInternalError  = "INTERNAL_ERROR"
+	ErrorCodeUnauthorized  = "UNAUTHORIZED"
+	ErrorCodeBadRequest    = "BAD_REQUEST"
+	ErrorCodeNotFound      = "NOT_FOUND"
+	ErrorCodeNotImplement  = "NOT_IMPLEMENT"
+	ErrorCodeInternalError = "INTERNAL_ERROR"
 )
 
 // Error struct for rest response

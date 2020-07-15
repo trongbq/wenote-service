@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"time"
 	"wenote/internal/user"
 
 	"github.com/jinzhu/gorm"
@@ -10,6 +11,17 @@ import (
 // Storage store db connection
 type Storage struct {
 	db *gorm.DB
+}
+
+// User type in  GORM
+type User struct {
+	ID         int
+	Name       string
+	Email      string
+	PictureURL string
+	Password   string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 // NewStorage return a new MySQL storage
@@ -42,6 +54,25 @@ func (s *Storage) GetUserByID(id int) (user.User, bool) {
 }
 
 // CreateUser save user data into DB
-func (s *Storage) CreateUser(u user.User) {
-	s.db.Create(u)
+func (s *Storage) CreateUser(u user.User) (user.User, error) {
+	uStorage := User{
+		Name:      u.Name,
+		Email:     u.Email,
+		Password:  u.Password,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	if err := s.db.Save(&uStorage).Error; err != nil {
+		return u, err
+	}
+	newUser := user.User{
+		ID:         uStorage.ID,
+		Name:       uStorage.Name,
+		Email:      uStorage.Email,
+		Password:   uStorage.Password,
+		PictureURL: uStorage.PictureURL,
+		CreatedAt:  uStorage.CreatedAt,
+		UpdatedAt:  uStorage.UpdatedAt,
+	}
+	return newUser, nil
 }

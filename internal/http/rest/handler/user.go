@@ -20,6 +20,7 @@ type ListUserResponse struct {
 	List []UserDetailResponse `json:"list"`
 }
 
+// UserDetailResponse ...
 type UserDetailResponse struct {
 	ID         int       `json:"id"`
 	Name       string    `json:"name"`

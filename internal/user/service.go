@@ -1,12 +1,10 @@
 package user
 
-import "golang.org/x/crypto/bcrypt"
-
 // Repository provides access to user repository
 type Repository interface {
 	GetAllUsers() []User
 	GetUserByID(id int) (User, bool)
-	CreateUser(u User)
+	CreateUser(u User) (User, error)
 }
 
 // Service provides user operations
@@ -30,16 +28,11 @@ func (s *Service) GetUserByID(id int) (User, bool) {
 }
 
 // CreateUser creates user with name, email and password
-func (s *Service) CreateUser(name string, email string, password string) (*User, error) {
-	p, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
-	if err != nil {
-		return nil, err
-	}
+func (s *Service) CreateUser(name string, email string, password string) (User, error) {
 	u := User{
 		Name:     name,
 		Email:    email,
-		Password: string(p),
+		Password: password,
 	}
-	s.r.CreateUser(u)
-	return &u, nil
+	return s.r.CreateUser(u)
 }

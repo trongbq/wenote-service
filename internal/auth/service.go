@@ -1,9 +1,37 @@
 package auth
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"wenote/internal/user"
 
-// HashAndSalt creates hashed string
-func HashAndSalt(s string) (string, error) {
+	"golang.org/x/crypto/bcrypt"
+)
+
+// Service provides user operations
+type Service struct {
+	u *user.Service
+}
+
+// NewService creates a user service
+func NewService(u *user.Service) *Service {
+	return &Service{u}
+}
+
+// SignUp sign user up
+func (s *Service) SignUp(name string, email string, password string) (*user.User, error) {
+	// Hash password
+	p, err := hashAndSalt(password)
+	if err != nil {
+		return nil, err
+	}
+	// Create user
+	u, err := s.u.CreateUser(name, email, p)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+func hashAndSalt(s string) (string, error) {
 	p, err := bcrypt.GenerateFromPassword([]byte(s), bcrypt.MinCost)
 	if err != nil {
 		return "", err
@@ -11,8 +39,7 @@ func HashAndSalt(s string) (string, error) {
 	return string(p), nil
 }
 
-// CompareHashAndPassword compares hash string and plain password
-func CompareHashAndPassword(h string, p string) bool {
+func compareHashAndPassword(h string, p string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(h), []byte(p))
 	if err != nil {
 		return false
