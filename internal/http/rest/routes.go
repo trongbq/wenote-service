@@ -41,8 +41,14 @@ func Routes(router *gin.Engine, handlers *ServiceHandler) {
 	{
 		apiV1User := apiV1.Group("users")
 		{
-			apiV1User.GET("", handlers.userHandler.GetAllUsers)
 			apiV1User.GET("/:id", handlers.userHandler.GetUserByID)
+		}
+	}
+	apiAdmin := router.Group("/api/admin/")
+	{
+		apiAdminUser := apiAdmin.Group("users")
+		{
+			apiAdminUser.GET("", handlers.userHandler.GetAllUsers)
 		}
 	}
 }
