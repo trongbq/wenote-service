@@ -31,3 +31,17 @@ func (s *Storage) GetAllUsers() []user.User {
 	s.db.Find(&users)
 	return users
 }
+
+// GetUserByID return single user contains matched ID
+func (s *Storage) GetUserByID(id int) (user.User, bool) {
+	var user user.User
+	if s.db.First(&user, id).RecordNotFound() {
+		return user, false
+	}
+	return user, true
+}
+
+// CreateUser save user data into DB
+func (s *Storage) CreateUser(u user.User) {
+	s.db.Create(u)
+}

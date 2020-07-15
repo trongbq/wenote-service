@@ -1,4 +1,4 @@
-package rest
+package error
 
 import (
 	"fmt"
@@ -6,13 +6,15 @@ import (
 )
 
 const (
-	ERRCODE_UNAUTHORIZED    = "UNAUTHORIZED"
-	ERRCODE_INVALID_REQUEST = "INVALID_REQUEST"
-	ERRCODE_NOT_FOUND       = "NOT_FOUND"
-	ERRCODE_NOT_IMPLEMENT   = "NOT_IMPLEMENT"
-	ERRCODE_INTERNAL_ERROR  = "INTERNAL_ERROR"
+	ErrorCodeUnauthorized   = "UNAUTHORIZED"
+	ErrorCodeBadRequest     = "BAD_REQUEST"
+	ErrorCodeInvalidRequest = "INVALID_REQUEST"
+	ErrorCodeNotFound       = "NOT_FOUND"
+	ErrorCodeNotImplement   = "NOT_IMPLEMENT"
+	ErrorCodeInternalError  = "INTERNAL_ERROR"
 )
 
+// Error struct for rest response
 type Error struct {
 	Code      string                 `json:"code"`
 	Message   string                 `json:"message"`
