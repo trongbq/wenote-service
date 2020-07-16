@@ -10,6 +10,18 @@ CREATE TABLE `user` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+DROP TABLE IF EXISTS `oauth_token`;
+CREATE TABLE `oauth_token` (
+  `id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `access_token` VARCHAR(255) NOT NULL,
+  `expires_at` TIMESTAMP NOT NULL,
+  `refresh_token` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	KEY `user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 DROP TABLE IF EXISTS `task`;
 CREATE TABLE `task` (
   `id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -95,6 +107,7 @@ CREATE TABLE `task_group` (
   `order` INT(10) NOT NULL COMMENT 'Share order with task, treat this entity as a normal task',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_task_goal FOREIGN KEY (`task_goal_id`) REFERENCES task_group(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 ALTER TABLE `task` ADD FOREIGN KEY (`user_id`) REFERENCES `user`(`id`);
@@ -109,3 +122,4 @@ ALTER TABLE `task_goal` ADD FOREIGN KEY (`user_id`) REFERENCES `user`(`id`);
 ALTER TABLE `task_goal` ADD FOREIGN KEY (`cat_id`) REFERENCES `task_category`(`id`);
 ALTER TABLE `task_group` ADD FOREIGN KEY (`user_id`) REFERENCES `user`(`id`);
 ALTER TABLE `task_group` ADD FOREIGN KEY (`task_goal_id`) REFERENCES `task_goal`(`id`);
+ALTER TABLE `oauth_token` ADD FOREIGN KEY (`user_id`) REFERENCES `user`(`id`);
