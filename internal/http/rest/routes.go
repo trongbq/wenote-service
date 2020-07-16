@@ -42,23 +42,23 @@ func Routes(router *gin.Engine, handlers *ServiceHandler) {
 		})
 	})
 
-	apiV1 := router.Group("/api/v1")
+	v1 := router.Group("/v1")
 	{
-		apiV1User := apiV1.Group("users")
+		v1User := v1.Group("users")
 		{
-			apiV1User.GET("/:id", handlers.userHandler.GetUserByID)
+			v1User.GET("/:id", handlers.userHandler.GetUserByID)
 		}
-		apiV1Auth := apiV1.Group("auth")
+		v1Auth := v1.Group("auth")
 		{
-			apiV1Auth.POST("/signup", handlers.authHandler.SignUp)
-			apiV1Auth.POST("/signin", handlers.authHandler.SignIn)
+			v1Auth.POST("/signup", handlers.authHandler.SignUp)
+			v1Auth.POST("/signin", handlers.authHandler.SignIn)
 		}
 	}
-	apiAdmin := router.Group("/api/admin/")
+	admin := router.Group("/admin/")
 	{
-		apiAdminUser := apiAdmin.Group("users")
+		adminUser := admin.Group("users")
 		{
-			apiAdminUser.GET("", handlers.userHandler.GetAllUsers)
+			adminUser.GET("", handlers.userHandler.GetAllUsers)
 		}
 	}
 }
