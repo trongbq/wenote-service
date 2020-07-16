@@ -1,6 +1,7 @@
 package account
 
 import (
+	"fmt"
 	"time"
 	"wenote/internal/user"
 
@@ -40,11 +41,13 @@ func (s *Service) Register(u *user.User) (OauthToken, error) {
 
 	refToken, err := GenerateToken(newUser.ID, TokenTypeRefresh)
 	if err != nil {
-		return auth, err
+		fmt.Println(err)
+		return auth, ErrFailedGenerateToken
 	}
 	aToken, err := GenerateToken(newUser.ID, TokenTypeAccess)
 	if err != nil {
-		return auth, err
+		fmt.Println(err)
+		return auth, ErrFailedGenerateToken
 	}
 	auth.UserID = newUser.ID
 	auth.AccessToken = aToken.Value

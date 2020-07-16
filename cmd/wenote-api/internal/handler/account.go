@@ -33,17 +33,28 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
+
 	m := req.CopyToModel()
+
 	auth, err := h.a.Register(m)
 	if err != nil {
-		resp := error.Error{
-			Code:      error.ErrorCodeBadRequest,
-			Message:   err.Error(),
-			Timestamp: time.Now(),
+		switch err {
+		case account.ErrFailedGenerateToken:
+			c.JSON(http.StatusInternalServerError, error.Error{
+				Code:      error.ErrorCodeInternalError,
+				Message:   err.Error(),
+				Timestamp: time.Now(),
+			})
+		default:
+			c.JSON(http.StatusBadRequest, error.Error{
+				Code:      error.ErrorCodeBadRequest,
+				Message:   err.Error(),
+				Timestamp: time.Now(),
+			})
 		}
-		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
+
 	resp := response.CopyToAccountRegisterResponse(auth)
 	c.JSON(http.StatusOK, resp)
 }
