@@ -1,24 +1,23 @@
-package rest
+package handler
 
 import (
 	"net/http"
 	"time"
-	"wenote/internal/http/rest/error"
-	"wenote/internal/http/rest/handler"
+	"wenote/cmd/wenote-api/internal/error"
 
 	"github.com/gin-gonic/gin"
 )
 
 // ServiceHandler contains all handler of the app to be served under routes
 type ServiceHandler struct {
-	userHandler *handler.UserHandler
-	authHandler *handler.AuthHandler
+	userHandler *UserHandler
+	authHandler *AuthHandler
 }
 
 // NewServiceHandler creates new ServiceHandler
 func NewServiceHandler(
-	userHandler *handler.UserHandler,
-	authHandler *handler.AuthHandler,
+	userHandler *UserHandler,
+	authHandler *AuthHandler,
 ) *ServiceHandler {
 	return &ServiceHandler{
 		userHandler,
@@ -50,15 +49,15 @@ func Routes(router *gin.Engine, handlers *ServiceHandler) {
 		}
 		v1Auth := v1.Group("auth")
 		{
-			v1Auth.POST("/signup", handlers.authHandler.SignUp)
+			v1Auth.POST("/register", handlers.authHandler.Register)
 			v1Auth.POST("/signin", handlers.authHandler.SignIn)
 		}
 	}
-	admin := router.Group("/admin/")
+	adminV1 := router.Group("/admin/v1")
 	{
-		adminUser := admin.Group("users")
+		adminV1User := adminV1.Group("users")
 		{
-			adminUser.GET("", handlers.userHandler.GetAllUsers)
+			adminV1User.GET("", handlers.userHandler.GetAllUsers)
 		}
 	}
 }

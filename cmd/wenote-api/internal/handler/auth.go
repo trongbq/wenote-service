@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 	"time"
+	"wenote/cmd/wenote-api/internal/error"
 	"wenote/internal/auth"
-	"wenote/internal/http/rest/error"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,8 +32,8 @@ func NewAuthHandler(a *auth.Service) *AuthHandler {
 	return &AuthHandler{a}
 }
 
-// SignUp register user and return token for authentication
-func (h *AuthHandler) SignUp(c *gin.Context) {
+// Register register user and return token for authentication
+func (h *AuthHandler) Register(c *gin.Context) {
 	var s SignUpRequest
 	err := c.ShouldBindJSON(&s)
 	if err != nil {
