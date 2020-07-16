@@ -2,6 +2,7 @@ package storage
 
 import (
 	"time"
+	"wenote/internal/account"
 	"wenote/internal/user"
 
 	"github.com/jinzhu/gorm"
@@ -15,13 +16,24 @@ type Storage struct {
 
 // User type in  GORM
 type User struct {
-	ID         int
+	ID         int `gorm:"primary_key"`
 	Name       string
 	Email      string
 	PictureURL string
 	Password   string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
+}
+
+// OauthToken ...
+type OauthToken struct {
+	ID           int `gorm:"primary_key"`
+	UserID       int
+	AccessToken  string
+	ExpiresAt    time.Time
+	RefreshToken string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 // NewStorage return a new MySQL storage
@@ -75,4 +87,38 @@ func (s *Storage) CreateUser(u user.User) (user.User, error) {
 		UpdatedAt:  uStorage.UpdatedAt,
 	}
 	return newUser, nil
+}
+
+// GetOauthTokenByUserID ...
+func (s *Storage) GetOauthTokenByUserID(userID int) (account.OauthToken, bool) {
+	var auth account.OauthToken
+	if s.db.Where("user_id = ?", userID).First(&auth).RecordNotFound() {
+		return auth, false
+	}
+	return auth, true
+}
+
+// CreateOauthToken ...
+func (s *Storage) CreateOauthToken(auth account.OauthToken) (account.OauthToken, error) {
+	at := OauthToken{
+		UserID:       auth.UserID,
+		AccessToken:  auth.AccessToken,
+		ExpiresAt:    auth.ExpiresAt,
+		RefreshToken: auth.RefreshToken,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+	if err := s.db.Save(&at).Error; err != nil {
+		return auth, err
+	}
+	newAuth := account.OauthToken{
+		ID:           at.ID,
+		UserID:       at.UserID,
+		AccessToken:  at.AccessToken,
+		ExpiresAt:    at.ExpiresAt,
+		RefreshToken: at.RefreshToken,
+		CreatedAt:    at.CreatedAt,
+		UpdatedAt:    at.UpdatedAt,
+	}
+	return newAuth, nil
 }

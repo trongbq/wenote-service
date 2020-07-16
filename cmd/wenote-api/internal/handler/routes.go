@@ -10,18 +10,18 @@ import (
 
 // ServiceHandler contains all handler of the app to be served under routes
 type ServiceHandler struct {
-	userHandler *UserHandler
-	authHandler *AuthHandler
+	userHandler    *UserHandler
+	accountHandler *AuthHandler
 }
 
 // NewServiceHandler creates new ServiceHandler
 func NewServiceHandler(
 	userHandler *UserHandler,
-	authHandler *AuthHandler,
+	accountHandler *AuthHandler,
 ) *ServiceHandler {
 	return &ServiceHandler{
 		userHandler,
-		authHandler,
+		accountHandler,
 	}
 }
 
@@ -49,8 +49,9 @@ func Routes(router *gin.Engine, handlers *ServiceHandler) {
 		}
 		v1Auth := v1.Group("auth")
 		{
-			v1Auth.POST("/register", handlers.authHandler.Register)
-			v1Auth.POST("/signin", handlers.authHandler.SignIn)
+			v1Auth.POST("/register", handlers.accountHandler.Register)
+			v1Auth.POST("/refresh", handlers.accountHandler.Refresh)
+			v1Auth.POST("/logout", handlers.accountHandler.Logout)
 		}
 	}
 	adminV1 := router.Group("/admin/v1")
