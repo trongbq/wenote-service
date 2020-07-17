@@ -1,7 +1,9 @@
 package main
 
 import (
+	"wenote/cmd/wenote-api/config"
 	"wenote/cmd/wenote-api/internal/handler"
+	"wenote/cmd/wenote-api/log"
 	"wenote/internal/account"
 	"wenote/internal/storage"
 	"wenote/internal/user"
@@ -10,6 +12,9 @@ import (
 )
 
 func main() {
+	log.InitLogrus()
+	config.LoadConfig()
+
 	// Init storage
 	storage, err := storage.NewStorage()
 	if err != nil {
