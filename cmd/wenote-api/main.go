@@ -23,7 +23,7 @@ func main() {
 
 	// Init services
 	userService := user.NewService(storage)
-	accountService := account.NewService(userService, storage)
+	accountService := account.NewService(storage)
 
 	// Init handlers
 	userHandler := handler.NewUserHandler(userService)
@@ -33,5 +33,8 @@ func main() {
 	// Setup routes and server
 	router := gin.Default()
 	handler.Routes(router, serviceHandler)
-	router.Run()
+	err = router.Run()
+	if err != nil {
+		panic(err)
+	}
 }

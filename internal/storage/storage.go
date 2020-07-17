@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"github.com/spf13/viper"
 	"time"
 	"wenote/internal/account"
 	"wenote/internal/user"
@@ -14,44 +15,25 @@ type Storage struct {
 	db *gorm.DB
 }
 
-// User type in  GORM
-type User struct {
-	ID         int `gorm:"primary_key"`
-	Name       string
-	Email      string
-	PictureURL string
-	Password   string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-}
-
-// OauthToken ...
-type OauthToken struct {
-	ID           int `gorm:"primary_key"`
-	UserID       int
-	AccessToken  string
-	ExpiresAt    time.Time
-	RefreshToken string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-}
-
 // NewStorage return a new MySQL storage
 func NewStorage() (*Storage, error) {
-	db, err := gorm.Open("mysql", "root:@/wenote?charset=utf8&parseTime=True&loc=Local")
+	db, err := gorm.Open("mysql", viper.GetString("database.connection-url"))
 	if err != nil {
 		return nil, err
 	}
 
 	db.SingularTable(true)
-	db.LogMode(true)
+
+	if env := viper.GetString("env"); env == "local" {
+		db.LogMode(true)
+	}
 
 	return &Storage{db}, nil
 }
 
 // GetAllUsers return all user in db
 func (s *Storage) GetAllUsers() []user.User {
-	users := []user.User{}
+	var users []user.User
 	s.db.Find(&users)
 	return users
 }
@@ -60,6 +42,15 @@ func (s *Storage) GetAllUsers() []user.User {
 func (s *Storage) GetUserByID(id int) (user.User, bool) {
 	var user user.User
 	if s.db.First(&user, id).RecordNotFound() {
+		return user, false
+	}
+	return user, true
+}
+
+// GetUserByEmail return single user contains matched email
+func (s *Storage) GetUserByEmail(email string) (user.User, bool) {
+	var user user.User
+	if s.db.Where("email = ?", email).First(&user).RecordNotFound() {
 		return user, false
 	}
 	return user, true
@@ -77,16 +68,7 @@ func (s *Storage) CreateUser(u user.User) (user.User, error) {
 	if err := s.db.Save(&uStorage).Error; err != nil {
 		return u, err
 	}
-	newUser := user.User{
-		ID:         uStorage.ID,
-		Name:       uStorage.Name,
-		Email:      uStorage.Email,
-		Password:   uStorage.Password,
-		PictureURL: uStorage.PictureURL,
-		CreatedAt:  uStorage.CreatedAt,
-		UpdatedAt:  uStorage.UpdatedAt,
-	}
-	return newUser, nil
+	return uStorage.CopyToModel(), nil
 }
 
 // GetOauthTokenByUserID ...
@@ -111,14 +93,5 @@ func (s *Storage) CreateOauthToken(auth account.OauthToken) (account.OauthToken,
 	if err := s.db.Save(&at).Error; err != nil {
 		return auth, err
 	}
-	newAuth := account.OauthToken{
-		ID:           at.ID,
-		UserID:       at.UserID,
-		AccessToken:  at.AccessToken,
-		ExpiresAt:    at.ExpiresAt,
-		RefreshToken: at.RefreshToken,
-		CreatedAt:    at.CreatedAt,
-		UpdatedAt:    at.UpdatedAt,
-	}
-	return newAuth, nil
+	return at.CopyToModel(), nil
 }

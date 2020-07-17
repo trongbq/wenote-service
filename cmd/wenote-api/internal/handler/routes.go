@@ -50,6 +50,7 @@ func Routes(router *gin.Engine, handlers *ServiceHandler) {
 		v1Auth := v1.Group("auth")
 		{
 			v1Auth.POST("/register", handlers.accountHandler.Register)
+			v1Auth.POST("/login", handlers.accountHandler.Login)
 			v1Auth.POST("/refresh", handlers.accountHandler.Refresh)
 			v1Auth.POST("/logout", handlers.accountHandler.Logout)
 		}

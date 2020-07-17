@@ -12,17 +12,16 @@ type RegisterRequest struct {
 }
 
 // SignInRequest contains request data for SignIn handler
-type SignInRequest struct {
+type LoginRequest struct {
 	Email    string
 	Password string
 }
 
 // CopyToModel ...
-func (r *RegisterRequest) CopyToModel() *user.User {
-	u := user.User{
+func (r RegisterRequest) CopyToModel() user.User {
+	return user.User{
 		Name:     r.Name,
 		Email:    r.Email,
 		Password: r.Password,
 	}
-	return &u
 }
