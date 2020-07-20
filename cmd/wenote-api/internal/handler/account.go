@@ -100,12 +100,42 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// Refresh return access token for authentication
+// Refresh returns access token for authentication
 func (h *AuthHandler) Refresh(c *gin.Context) {
-	c.JSON(http.StatusOK, nil)
+	var req request.RefreshOauthTokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		resp := error.Error{
+			Code:      error.ErrorCodeBadRequest,
+			Message:   err.Error(),
+			Timestamp: time.Now(),
+		}
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	auth, err := h.a.RefreshAccessToken(req.RefreshToken)
+	if err != nil {
+		switch err {
+		case account.ErrInvalidRefreshToken:
+			c.JSON(http.StatusBadRequest, error.Error{
+				Code:      error.ErrorCodeBadRequest,
+				Message:   err.Error(),
+				Timestamp: time.Now(),
+			})
+		default:
+			c.JSON(http.StatusInternalServerError, error.Error{
+				Code:      error.ErrorCodeInternalError,
+				Message:   err.Error(),
+				Timestamp: time.Now(),
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, auth)
 }
 
-// Logout return token for authentication
+// Logout returns token for authentication
 func (h *AuthHandler) Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }

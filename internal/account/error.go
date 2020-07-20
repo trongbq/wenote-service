@@ -13,3 +13,6 @@ var ErrUserNotFound = errors.New("user is not found")
 
 // ErrUserNotFound indicates user does not exist in the system
 var ErrInvalidPassword = errors.New("password is invalid")
+
+// ErrUserNotFound indicates user does not exist in the system
+var ErrInvalidRefreshToken = errors.New("refresh token is invalid")

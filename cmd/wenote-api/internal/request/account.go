@@ -17,6 +17,11 @@ type LoginRequest struct {
 	Password string
 }
 
+// SignInRequest contains request data for SignIn handler
+type RefreshOauthTokenRequest struct {
+	RefreshToken string
+}
+
 // CopyToModel ...
 func (r RegisterRequest) CopyToModel() user.User {
 	return user.User{

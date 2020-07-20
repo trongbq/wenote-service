@@ -14,6 +14,7 @@ type Repository interface {
 	CreateUser(u user.User) (user.User, error)
 	GetOauthTokenByUserID(userID int) (OauthToken, bool)
 	CreateOauthToken(auth OauthToken) (OauthToken, error)
+	UpdateOauthToken(auth OauthToken) (OauthToken, error)
 }
 
 // Service provides user operations
@@ -66,6 +67,28 @@ func (s *Service) Login(email string, password string) (OauthToken, error) {
 		return s.r.CreateOauthToken(auth)
 	}
 	return token, nil
+}
+
+// RefreshAccessToken validates refresh token and return new access token
+func (s *Service) RefreshAccessToken(refreshToken string) (OauthToken, error) {
+	userID := 0 // Temporary fake userID
+
+	auth, ok := s.r.GetOauthTokenByUserID(userID)
+	if !ok {
+		return OauthToken{}, ErrInvalidRefreshToken
+	}
+
+	// Generate a new access token
+	accessToken, err := GenerateToken(userID, TokenTypeAccess)
+	if err != nil {
+		fmt.Println(err)
+		return OauthToken{}, ErrFailedGenerateToken
+	}
+	auth.AccessToken = accessToken.Value
+	auth.ExpiresAt = time.Unix(accessToken.ExpiresAt, 0)
+	s.r.UpdateOauthToken(auth)
+
+	return auth, nil
 }
 
 func hashAndSalt(s string) (string, error) {

@@ -1,10 +1,11 @@
 package storage
 
 import (
-	"github.com/spf13/viper"
 	"time"
 	"wenote/internal/account"
 	"wenote/internal/user"
+
+	"github.com/spf13/viper"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql" // gorm dialect
@@ -88,6 +89,23 @@ func (s *Storage) CreateOauthToken(auth account.OauthToken) (account.OauthToken,
 		ExpiresAt:    auth.ExpiresAt,
 		RefreshToken: auth.RefreshToken,
 		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+	if err := s.db.Save(&at).Error; err != nil {
+		return auth, err
+	}
+	return at.CopyToModel(), nil
+}
+
+// UpdateOauthToken ...
+func (s *Storage) UpdateOauthToken(auth account.OauthToken) (account.OauthToken, error) {
+	at := OauthToken{
+		ID:           auth.ID,
+		UserID:       auth.UserID,
+		AccessToken:  auth.AccessToken,
+		ExpiresAt:    auth.ExpiresAt,
+		RefreshToken: auth.RefreshToken,
+		CreatedAt:    auth.CreatedAt,
 		UpdatedAt:    time.Now(),
 	}
 	if err := s.db.Save(&at).Error; err != nil {
