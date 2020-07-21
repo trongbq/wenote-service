@@ -2,6 +2,7 @@ package account
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"time"
 	"wenote/internal/user"
 
@@ -15,6 +16,7 @@ type Repository interface {
 	GetOauthTokenByUserID(userID int) (OauthToken, bool)
 	CreateOauthToken(auth OauthToken) (OauthToken, error)
 	UpdateOauthToken(auth OauthToken) (OauthToken, error)
+	DeleteOauthTokenByUserID(userID int) error
 }
 
 // Service provides user operations
@@ -71,7 +73,14 @@ func (s *Service) Login(email string, password string) (OauthToken, error) {
 
 // RefreshAccessToken validates refresh token and return new access token
 func (s *Service) RefreshAccessToken(refreshToken string) (OauthToken, error) {
-	userID := 0 // Temporary fake userID
+	if !verifyToken(refreshToken) {
+		return OauthToken{}, ErrInvalidRefreshToken
+	}
+
+	userID, err := ExtractUserIDFromToken(refreshToken)
+	if err != nil {
+		return OauthToken{}, ErrInvalidRefreshToken
+	}
 
 	auth, ok := s.r.GetOauthTokenByUserID(userID)
 	if !ok {
@@ -79,16 +88,23 @@ func (s *Service) RefreshAccessToken(refreshToken string) (OauthToken, error) {
 	}
 
 	// Generate a new access token
-	accessToken, err := GenerateToken(userID, TokenTypeAccess)
+	accessToken, err := generateToken(userID, TokenTypeAccess)
 	if err != nil {
 		fmt.Println(err)
 		return OauthToken{}, ErrFailedGenerateToken
 	}
 	auth.AccessToken = accessToken.Value
 	auth.ExpiresAt = time.Unix(accessToken.ExpiresAt, 0)
-	s.r.UpdateOauthToken(auth)
 
-	return auth, nil
+	return s.r.UpdateOauthToken(auth)
+}
+
+// Logout remove user's credentials from DB
+func (s *Service) Logout(userID int) {
+	err := s.r.DeleteOauthTokenByUserID(userID)
+	if err != nil {
+		logrus.Errorf("DeleteOauthTokenByUserID: %v", err)
+	}
 }
 
 func hashAndSalt(s string) (string, error) {
@@ -109,12 +125,12 @@ func compareHashAndPassword(h string, p string) bool {
 
 // Generate access token and refresh token for new user
 func generateUserTokens(userID int) (OauthToken, error) {
-	refreshToken, err := GenerateToken(userID, TokenTypeRefresh)
+	refreshToken, err := generateToken(userID, TokenTypeRefresh)
 	if err != nil {
 		fmt.Println(err)
 		return OauthToken{}, ErrFailedGenerateToken
 	}
-	accessToken, err := GenerateToken(userID, TokenTypeAccess)
+	accessToken, err := generateToken(userID, TokenTypeAccess)
 	if err != nil {
 		fmt.Println(err)
 		return OauthToken{}, ErrFailedGenerateToken

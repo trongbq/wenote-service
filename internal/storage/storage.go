@@ -113,3 +113,8 @@ func (s *Storage) UpdateOauthToken(auth account.OauthToken) (account.OauthToken,
 	}
 	return at.CopyToModel(), nil
 }
+
+// DeleteOauthTokenByUserID deletes user credentials
+func (s *Storage) DeleteOauthTokenByUserID(userID int) error {
+	return s.db.Where("user_id = ?", userID).Delete(OauthToken{}).Error
+}

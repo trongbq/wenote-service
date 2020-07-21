@@ -7,6 +7,7 @@ import (
 
 const (
 	ErrorCodeUnauthorized  = "UNAUTHORIZED"
+	ErrorCodeTokenExpired  = "TOKEN_EXPIRED"
 	ErrorCodeBadRequest    = "BAD_REQUEST"
 	ErrorCodeNotFound      = "NOT_FOUND"
 	ErrorCodeNotImplement  = "NOT_IMPLEMENT"
@@ -47,6 +48,15 @@ func SimpleBadRequestResponse(message string) Error {
 func SimpleInternalErrorResponse(message string) Error {
 	return Error{
 		Code:      ErrorCodeInternalError,
+		Message:   message,
+		Timestamp: time.Now(),
+	}
+}
+
+// SimpleUnauthorizedResponse builds simple format for error response
+func SimpleUnauthorizedResponse(message string) Error {
+	return Error{
+		Code:      ErrorCodeUnauthorized,
 		Message:   message,
 		Timestamp: time.Now(),
 	}

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 	"wenote/cmd/wenote-api/internal/error"
+	"wenote/cmd/wenote-api/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,16 +44,21 @@ func Routes(router *gin.Engine, handlers *ServiceHandler) {
 
 	v1 := router.Group("/v1")
 	{
-		v1User := v1.Group("users")
-		{
-			v1User.GET("/:id", handlers.userHandler.GetUserByID)
-		}
 		v1Auth := v1.Group("auth")
 		{
 			v1Auth.POST("/register", handlers.accountHandler.Register)
 			v1Auth.POST("/login", handlers.accountHandler.Login)
 			v1Auth.POST("/refresh", handlers.accountHandler.Refresh)
+		}
+		v1Auth.Use(middleware.AuthenticationMiddleware())
+		{
 			v1Auth.POST("/logout", handlers.accountHandler.Logout)
+		}
+
+		v1User := v1.Group("users")
+		v1User.Use(middleware.AuthenticationMiddleware())
+		{
+			v1User.GET("/:id", handlers.userHandler.GetUserByID)
 		}
 	}
 	adminV1 := router.Group("/admin/v1")

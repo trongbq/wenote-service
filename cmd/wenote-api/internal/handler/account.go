@@ -91,7 +91,8 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	c.JSON(http.StatusOK, auth)
 }
 
-// Logout returns token for authentication
+// Logout deletes user's credential
 func (h *AuthHandler) Logout(c *gin.Context) {
+	h.a.Logout(c.GetInt("UserID"))
 	c.JSON(http.StatusOK, nil)
 }
