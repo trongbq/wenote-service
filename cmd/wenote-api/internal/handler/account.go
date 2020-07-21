@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"time"
 	"wenote/cmd/wenote-api/internal/error"
 	"wenote/cmd/wenote-api/internal/request"
 	"wenote/cmd/wenote-api/internal/response"
@@ -25,12 +24,7 @@ func NewAuthHandler(a *account.Service) *AuthHandler {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req request.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resp := error.Error{
-			Code:      error.ErrorCodeBadRequest,
-			Message:   err.Error(),
-			Timestamp: time.Now(),
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, error.SimpleBadRequestResponse(err.Error()))
 		return
 	}
 
@@ -39,17 +33,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	if err != nil {
 		switch err {
 		case account.ErrFailedGenerateToken:
-			c.JSON(http.StatusInternalServerError, error.Error{
-				Code:      error.ErrorCodeInternalError,
-				Message:   err.Error(),
-				Timestamp: time.Now(),
-			})
+			c.JSON(http.StatusInternalServerError, error.SimpleInternalErrorResponse(err.Error()))
 		default:
-			c.JSON(http.StatusBadRequest, error.Error{
-				Code:      error.ErrorCodeBadRequest,
-				Message:   err.Error(),
-				Timestamp: time.Now(),
-			})
+			c.JSON(http.StatusBadRequest, error.SimpleBadRequestResponse(err.Error()))
 		}
 		return
 	}
@@ -62,12 +48,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req request.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resp := error.Error{
-			Code:      error.ErrorCodeBadRequest,
-			Message:   err.Error(),
-			Timestamp: time.Now(),
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, error.SimpleBadRequestResponse(err.Error()))
 		return
 	}
 
@@ -75,23 +56,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	if err != nil {
 		switch err {
 		case account.ErrUserNotFound:
-			c.JSON(http.StatusNotFound, error.Error{
-				Code:      error.ErrorCodeNotFound,
-				Message:   err.Error(),
-				Timestamp: time.Now(),
-			})
+			c.JSON(http.StatusNotFound, error.SimpleErrorResponse(error.ErrorCodeBadRequest, err.Error()))
 		case account.ErrInvalidPassword:
-			c.JSON(http.StatusBadRequest, error.Error{
-				Code:      error.ErrorCodeBadRequest,
-				Message:   err.Error(),
-				Timestamp: time.Now(),
-			})
+			c.JSON(http.StatusBadRequest, error.SimpleBadRequestResponse(err.Error()))
 		default:
-			c.JSON(http.StatusInternalServerError, error.Error{
-				Code:      error.ErrorCodeInternalError,
-				Message:   err.Error(),
-				Timestamp: time.Now(),
-			})
+			c.JSON(http.StatusInternalServerError, error.SimpleInternalErrorResponse(err.Error()))
 		}
 		return
 	}
@@ -104,12 +73,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	var req request.RefreshOauthTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resp := error.Error{
-			Code:      error.ErrorCodeBadRequest,
-			Message:   err.Error(),
-			Timestamp: time.Now(),
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, error.SimpleBadRequestResponse(err.Error()))
 		return
 	}
 
@@ -117,17 +81,9 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	if err != nil {
 		switch err {
 		case account.ErrInvalidRefreshToken:
-			c.JSON(http.StatusBadRequest, error.Error{
-				Code:      error.ErrorCodeBadRequest,
-				Message:   err.Error(),
-				Timestamp: time.Now(),
-			})
+			c.JSON(http.StatusBadRequest, error.SimpleBadRequestResponse(err.Error()))
 		default:
-			c.JSON(http.StatusInternalServerError, error.Error{
-				Code:      error.ErrorCodeInternalError,
-				Message:   err.Error(),
-				Timestamp: time.Now(),
-			})
+			c.JSON(http.StatusInternalServerError, error.SimpleInternalErrorResponse(err.Error()))
 		}
 		return
 	}

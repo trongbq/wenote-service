@@ -24,3 +24,30 @@ type Error struct {
 func (err *Error) Error() string {
 	return fmt.Sprintf("%s: %s", err.Code, err.Message)
 }
+
+// SimpleErrorResponse builds simple format for error response
+func SimpleErrorResponse(errorCode string, message string) Error {
+	return Error{
+		Code:      errorCode,
+		Message:   message,
+		Timestamp: time.Now(),
+	}
+}
+
+// SimpleBadRequestResponse builds simple format for error response
+func SimpleBadRequestResponse(message string) Error {
+	return Error{
+		Code:      ErrorCodeBadRequest,
+		Message:   message,
+		Timestamp: time.Now(),
+	}
+}
+
+// SimpleInternalErrorResponse builds simple format for error response
+func SimpleInternalErrorResponse(message string) Error {
+	return Error{
+		Code:      ErrorCodeInternalError,
+		Message:   message,
+		Timestamp: time.Now(),
+	}
+}
