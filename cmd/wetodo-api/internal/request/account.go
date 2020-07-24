@@ -1,7 +1,7 @@
 package request
 
 import (
-	"wenote/internal/user"
+	"wetodo/internal/user"
 )
 
 // RegisterRequest contains request data for SignUp handler

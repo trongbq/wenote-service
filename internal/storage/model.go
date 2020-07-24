@@ -2,8 +2,8 @@ package storage
 
 import (
 	"time"
-	"wenote/internal/account"
-	"wenote/internal/user"
+	"wetodo/internal/account"
+	"wetodo/internal/user"
 )
 
 // User type in  GORM
@@ -52,4 +52,21 @@ func (o OauthToken) CopyToModel() account.OauthToken {
 		CreatedAt:    o.CreatedAt,
 		UpdatedAt:    o.UpdatedAt,
 	}
+}
+
+type Task struct {
+	ID          int
+	UserID      int
+	TaskGroupID int
+	TaskGoalID  int
+	Content     string
+	Note        string
+	Start       time.Time
+	Reminder    time.Time
+	Deadline    time.Time
+	Order       int
+	Done        bool
+	Status      string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }

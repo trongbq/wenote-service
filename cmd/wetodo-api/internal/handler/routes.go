@@ -3,26 +3,29 @@ package handler
 import (
 	"net/http"
 	"time"
-	"wenote/cmd/wenote-api/internal/error"
-	"wenote/cmd/wenote-api/internal/middleware"
+	"wetodo/cmd/wetodo-api/internal/error"
+	"wetodo/cmd/wetodo-api/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 // ServiceHandler contains all handler of the app to be served under routes
 type ServiceHandler struct {
-	userHandler    *UserHandler
-	accountHandler *AuthHandler
+	userHandler      *UserHandler
+	accountHandler   *AuthHandler
+	operationHandler *OperationHandler
 }
 
 // NewServiceHandler creates new ServiceHandler
 func NewServiceHandler(
 	userHandler *UserHandler,
 	accountHandler *AuthHandler,
+	operationHandler *OperationHandler,
 ) *ServiceHandler {
 	return &ServiceHandler{
 		userHandler,
 		accountHandler,
+		operationHandler,
 	}
 }
 
@@ -36,6 +39,7 @@ func Routes(router *gin.Engine, handlers *ServiceHandler) {
 		})
 	})
 
+	// Use to check whether client can connect to server API (in case client is offline)
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
@@ -59,6 +63,12 @@ func Routes(router *gin.Engine, handlers *ServiceHandler) {
 		v1User.Use(middleware.AuthenticationMiddleware())
 		{
 			v1User.GET("/:id", handlers.userHandler.GetUserByID)
+		}
+
+		v1Operation := v1.Group("operations")
+		v1Operation.Use(middleware.AuthenticationMiddleware())
+		{
+			v1Operation.POST("/save", handlers.operationHandler.SaveOperations)
 		}
 	}
 	adminV1 := router.Group("/admin/v1")

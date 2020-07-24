@@ -2,7 +2,7 @@ package response
 
 import (
 	"time"
-	"wenote/internal/account"
+	"wetodo/internal/account"
 )
 
 // AccountTokenResponse ...

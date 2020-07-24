@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"time"
-	"wenote/internal/user"
+	"wetodo/internal/user"
 
 	"golang.org/x/crypto/bcrypt"
 )

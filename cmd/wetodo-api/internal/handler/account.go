@@ -2,15 +2,15 @@ package handler
 
 import (
 	"net/http"
-	"wenote/cmd/wenote-api/internal/error"
-	"wenote/cmd/wenote-api/internal/request"
-	"wenote/cmd/wenote-api/internal/response"
-	"wenote/internal/account"
+	"wetodo/cmd/wetodo-api/internal/error"
+	"wetodo/cmd/wetodo-api/internal/request"
+	"wetodo/cmd/wetodo-api/internal/response"
+	"wetodo/internal/account"
 
 	"github.com/gin-gonic/gin"
 )
 
-// AuthHandler is a handler for user resource
+// AuthHandler is a handler for auth resource
 type AuthHandler struct {
 	a *account.Service
 }

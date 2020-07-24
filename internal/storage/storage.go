@@ -2,8 +2,8 @@ package storage
 
 import (
 	"time"
-	"wenote/internal/account"
-	"wenote/internal/user"
+	"wetodo/internal/account"
+	"wetodo/internal/user"
 
 	"github.com/spf13/viper"
 

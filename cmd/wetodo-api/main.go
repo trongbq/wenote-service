@@ -1,12 +1,13 @@
 package main
 
 import (
-	"wenote/cmd/wenote-api/config"
-	"wenote/cmd/wenote-api/internal/handler"
-	"wenote/cmd/wenote-api/log"
-	"wenote/internal/account"
-	"wenote/internal/storage"
-	"wenote/internal/user"
+	"wetodo/cmd/wetodo-api/config"
+	"wetodo/cmd/wetodo-api/internal/handler"
+	"wetodo/cmd/wetodo-api/log"
+	"wetodo/internal/account"
+	"wetodo/internal/operation"
+	"wetodo/internal/storage"
+	"wetodo/internal/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,11 +25,14 @@ func main() {
 	// Init services
 	userService := user.NewService(storage)
 	accountService := account.NewService(storage)
+	operationService := operation.NewService()
 
 	// Init handlers
 	userHandler := handler.NewUserHandler(userService)
 	accountHandler := handler.NewAuthHandler(accountService)
-	serviceHandler := handler.NewServiceHandler(userHandler, accountHandler)
+	operationHandler := handler.NewOperationHandler(operationService)
+
+	serviceHandler := handler.NewServiceHandler(userHandler, accountHandler, operationHandler)
 
 	// Setup routes and server
 	router := gin.Default()

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	"wenote/cmd/wenote-api/internal/error"
-	"wenote/internal/user"
+	"wetodo/cmd/wetodo-api/internal/error"
+	"wetodo/internal/user"
 
 	"github.com/gin-gonic/gin"
 )

@@ -5,10 +5,10 @@ IMAGE_NAME_LATEST := $(IMAGE_NAME):latest
 CONTAINER_NAME := $(IMAGE_NAME)-container
 
 run:
-	ENV=$(ENV) go run cmd/wenote-api/main.go
+	ENV=$(ENV) go run cmd/wetodo-api/main.go
 
 build:
-	go build -tags api -o ./build/wenote-api ./cmd/wenote-api/.
+	go build -tags api -o ./build/wetodo-api ./cmd/wenote-api/.
 
 docker-build:
 	docker build -f Dockerfile -t $(IMAGE_NAME_LATEST) .
