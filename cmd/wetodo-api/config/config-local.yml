@@ -1,7 +1,7 @@
 database:
-  connection-url: root:@/wenote?charset=utf8&parseTime=True&loc=Local
+  connection-url: root:@/wetodo?charset=utf8&parseTime=True&loc=Local
 
 token:
-  issuer: WeNote
-  secret: wenote-app-super-secret
+  issuer: WeTodo
+  secret: wetodo-app-super-secret
   expire: 60 # minutes

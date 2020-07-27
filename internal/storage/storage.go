@@ -3,6 +3,7 @@ package storage
 import (
 	"time"
 	"wetodo/internal/account"
+	"wetodo/internal/operation"
 	"wetodo/internal/user"
 
 	"github.com/spf13/viper"
@@ -117,4 +118,33 @@ func (s *Storage) UpdateOauthToken(auth account.OauthToken) (account.OauthToken,
 // DeleteOauthTokenByUserID deletes user credentials
 func (s *Storage) DeleteOauthTokenByUserID(userID int) error {
 	return s.db.Where("user_id = ?", userID).Delete(OauthToken{}).Error
+}
+
+// MarkCompleteTaskByID marks a task completed
+func (s *Storage) MarkCompleteTaskByID(id int) error {
+	var task operation.Task
+	if !s.db.First(&task, id).RecordNotFound() {
+		task.Completed = true
+		task.CompletedAt = ptrTime(time.Now())
+		if err := s.db.Save(&task).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// CreateTask ...
+func (s *Storage) CreateTask(task operation.Task) (operation.Task, error) {
+	task.CreatedAt = time.Now()
+	task.UpdatedAt = time.Now()
+
+	if err := s.db.Save(&task).Error; err != nil {
+		return task, err
+	}
+
+	return task, nil
+}
+
+func ptrTime(t time.Time) *time.Time {
+	return &t
 }

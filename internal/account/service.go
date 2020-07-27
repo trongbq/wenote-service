@@ -2,9 +2,10 @@ package account
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"time"
 	"wetodo/internal/user"
+
+	"github.com/sirupsen/logrus"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -49,6 +50,7 @@ func (s *Service) Register(u user.User) (OauthToken, error) {
 	return s.r.CreateOauthToken(auth)
 }
 
+// Login ...
 func (s *Service) Login(email string, password string) (OauthToken, error) {
 	u, ok := s.r.GetUserByEmail(email)
 	if !ok {

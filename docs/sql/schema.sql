@@ -34,7 +34,8 @@ CREATE TABLE `task` (
   `reminder` TIMESTAMP,
   `deadline` TIMESTAMP,
   `order` INT(10) NOT NULL,
-  `done` BOOLEAN DEFAULT FALSE,
+  `completed` BOOLEAN DEFAULT FALSE,
+  `completed_at` TIMESTAMP,
   `status` ENUM('active', 'deleted'),
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -46,7 +47,8 @@ CREATE TABLE `checklist` (
   `task_id` INT NOT NULL,
   `content` VARCHAR(100) NOT NULL DEFAULT '',
   `order` INT(10) NOT NULL,
-  `done` BOOLEAN DEFAULT FALSE,
+  `completed` BOOLEAN DEFAULT FALSE,
+  `completed_at` TIMESTAMP,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -91,7 +93,8 @@ CREATE TABLE `task_goal` (
   `reminder` TIMESTAMP,
   `deadline` TIMESTAMP,
   `order` INT(10) NOT NULL,
-  `done` BOOLEAN DEFAULT FALSE,
+  `completed` BOOLEAN DEFAULT FALSE,
+  `completed_at` TIMESTAMP,
   `status` ENUM('active', 'deleted'),
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -111,15 +114,11 @@ CREATE TABLE `task_group` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 ALTER TABLE `task` ADD FOREIGN KEY (`user_id`) REFERENCES `user`(`id`);
-ALTER TABLE `task` ADD FOREIGN KEY (`task_group_id`) REFERENCES `task_group`(`id`);
-ALTER TABLE `task` ADD FOREIGN KEY (`task_goal_id`) REFERENCES `task_goal`(`id`);
 ALTER TABLE `checklist` ADD FOREIGN KEY (`task_id`) REFERENCES `task`(`id`);
 ALTER TABLE `tag` ADD FOREIGN KEY (`user_id`) REFERENCES `user`(`id`);
 ALTER TABLE `task_tag` ADD FOREIGN KEY (`task_id`) REFERENCES `task`(`id`);
 ALTER TABLE `task_tag` ADD FOREIGN KEY (`tag_id`) REFERENCES `tag`(`id`);
 ALTER TABLE `task_category` ADD FOREIGN KEY (`user_id`) REFERENCES `user`(`id`);
 ALTER TABLE `task_goal` ADD FOREIGN KEY (`user_id`) REFERENCES `user`(`id`);
-ALTER TABLE `task_goal` ADD FOREIGN KEY (`cat_id`) REFERENCES `task_category`(`id`);
 ALTER TABLE `task_group` ADD FOREIGN KEY (`user_id`) REFERENCES `user`(`id`);
-ALTER TABLE `task_group` ADD FOREIGN KEY (`task_goal_id`) REFERENCES `task_goal`(`id`);
 ALTER TABLE `oauth_token` ADD FOREIGN KEY (`user_id`) REFERENCES `user`(`id`);

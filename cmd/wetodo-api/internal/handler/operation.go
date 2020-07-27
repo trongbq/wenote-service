@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"wetodo/cmd/wetodo-api/internal/error"
 	"wetodo/cmd/wetodo-api/internal/request"
 	"wetodo/internal/operation"
+
+	"github.com/gin-gonic/gin"
 )
 
 type OperationHandler struct {
@@ -23,7 +24,11 @@ func (h *OperationHandler) SaveOperations(c *gin.Context) {
 		return
 	}
 
-	h.s.SaveOperations(req.Operations)
+	err := h.s.SaveOperations(c.GetInt("UserID"), req.Operations)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, error.SimpleBadRequestResponse(err.Error()))
+		return
+	}
 
 	c.JSON(http.StatusOK, nil)
 }

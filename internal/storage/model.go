@@ -53,20 +53,3 @@ func (o OauthToken) CopyToModel() account.OauthToken {
 		UpdatedAt:    o.UpdatedAt,
 	}
 }
-
-type Task struct {
-	ID          int
-	UserID      int
-	TaskGroupID int
-	TaskGoalID  int
-	Content     string
-	Note        string
-	Start       time.Time
-	Reminder    time.Time
-	Deadline    time.Time
-	Order       int
-	Done        bool
-	Status      string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-}

@@ -25,7 +25,7 @@ func main() {
 	// Init services
 	userService := user.NewService(storage)
 	accountService := account.NewService(storage)
-	operationService := operation.NewService()
+	operationService := operation.NewService(storage)
 
 	// Init handlers
 	userHandler := handler.NewUserHandler(userService)
