@@ -2,7 +2,6 @@ package operation
 
 import (
 	"errors"
-	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -35,11 +34,11 @@ func (s *Service) SaveOperations(userID int, ops []Operation) []error {
 
 	// Group operations by operation ID (task ID)
 	groups := groupByID(ops)
-	logrus.Info(groups)
 
 	// Iterate through all groups
 	for _, ops := range groups {
 		var task Task
+		var found bool
 		for _, op := range ops {
 			switch op.Type {
 			case AddTask:
@@ -48,39 +47,30 @@ func (s *Service) SaveOperations(userID int, ops []Operation) []error {
 				task.UserID = userID
 				task.CreatedAt = op.StartedAt
 			case UpdateTask:
-				// Check if task is not created or retrieved before, try to get from storage
 				if len(task.ID) == 0 {
-					t, found := s.r.GetTaskByID(userID, op.ID)
-					if found == false {
+					if task, found = s.r.GetTaskByID(userID, op.ID); found == false {
 						errs = append(errs, ErrTaskNotFound)
 						break
 					}
-					task = t
 				}
 				// Update operation data to current task
 				task = op.Content.UpdateToTask(task)
 				task.UpdatedAt = op.StartedAt
 			case RemoveTask:
-				// Check if task is not created or retrieved before, try to get from storage
 				if len(task.ID) == 0 {
-					t, found := s.r.GetTaskByID(userID, op.ID)
-					if found == false {
+					if task, found = s.r.GetTaskByID(userID, op.ID); found == false {
 						errs = append(errs, ErrTaskNotFound)
 						break
 					}
-					task = t
 				}
 				task.Deleted = true
 				task.DeletedAt = ptrTime(time.Now())
 			case CompleteTask:
-				// Check if task is not created or retrieved before, try to get from storage
 				if len(task.ID) == 0 {
-					t, found := s.r.GetTaskByID(userID, op.ID)
-					if found == false {
+					if task, found = s.r.GetTaskByID(userID, op.ID); found == false {
 						errs = append(errs, ErrTaskNotFound)
 						break
 					}
-					task = t
 				}
 				task.Completed = true
 				task.CompletedAt = ptrTime(time.Now())
