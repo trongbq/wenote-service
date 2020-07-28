@@ -1,6 +1,7 @@
 package storage
 
 import (
+	uuid "github.com/satori/go.uuid"
 	"time"
 	"wetodo/internal/account"
 	"wetodo/internal/operation"
@@ -120,31 +121,36 @@ func (s *Storage) DeleteOauthTokenByUserID(userID int) error {
 	return s.db.Where("user_id = ?", userID).Delete(OauthToken{}).Error
 }
 
-// MarkCompleteTaskByID marks a task completed
-func (s *Storage) MarkCompleteTaskByID(id int) error {
-	var task operation.Task
-	if !s.db.First(&task, id).RecordNotFound() {
-		task.Completed = true
-		task.CompletedAt = ptrTime(time.Now())
-		if err := s.db.Save(&task).Error; err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// CreateTask ...
-func (s *Storage) CreateTask(task operation.Task) (operation.Task, error) {
-	task.CreatedAt = time.Now()
+// CreateTask from service model
+func (s *Storage) CreateOrUpdateTask(t operation.Task) (operation.Task, error) {
+	task := CopyTaskFromServiceModel(t)
 	task.UpdatedAt = time.Now()
-
 	if err := s.db.Save(&task).Error; err != nil {
-		return task, err
+		return task.CopyToServiceModel(), err
 	}
 
-	return task, nil
+	return task.CopyToServiceModel(), nil
 }
 
-func ptrTime(t time.Time) *time.Time {
-	return &t
+// GetOauthTokenByUserID ...
+func (s *Storage) GetTaskByID(userID int, id string) (operation.Task, bool) {
+	var task Task
+
+	uID, err := uuidToBinary(id)
+	if err != nil {
+		return operation.Task{}, false
+	}
+
+	if s.db.Where("user_id = ? AND id = ?", userID, uID).First(&task).RecordNotFound() {
+		return operation.Task{}, false
+	}
+	return task.CopyToServiceModel(), true
+}
+
+func uuidToBinary(s string) ([]byte, error) {
+	u, err := uuid.FromString(s)
+	if err != nil {
+		return []byte{}, err
+	}
+	return u.MarshalBinary()
 }

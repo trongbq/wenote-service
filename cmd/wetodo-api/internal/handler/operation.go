@@ -24,9 +24,10 @@ func (h *OperationHandler) SaveOperations(c *gin.Context) {
 		return
 	}
 
-	err := h.s.SaveOperations(c.GetInt("UserID"), req.Operations)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, error.SimpleBadRequestResponse(err.Error()))
+	errs := h.s.SaveOperations(c.GetInt("UserID"), req.Operations)
+	if len(errs) != 0 {
+		// TODO: handle error fully
+		c.JSON(http.StatusBadRequest, error.SimpleBadRequestResponse(errs[0].Error()))
 		return
 	}
 

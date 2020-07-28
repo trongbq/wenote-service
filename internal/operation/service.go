@@ -1,19 +1,21 @@
 package operation
 
 import (
-	"encoding/json"
 	"errors"
+	"github.com/sirupsen/logrus"
+	"time"
 )
 
 var (
 	ErrOperationType = errors.New("Invalid operation type")
 	ErrContentFormat = errors.New("Error content format")
+	ErrTaskNotFound  = errors.New("Error task not found")
 )
 
 // Repository ...
 type Repository interface {
-	MarkCompleteTaskByID(id int) error
-	CreateTask(task Task) (Task, error)
+	CreateOrUpdateTask(t Task) (Task, error)
+	GetTaskByID(userID int, ID string) (Task, bool)
 }
 
 // Service ...
@@ -26,34 +28,83 @@ func NewService(r Repository) *Service {
 	return &Service{r}
 }
 
-// SaveOperations ...
-// TODO: generate id with UUID on client side
-func (s *Service) SaveOperations(userID int, ops []Operation) error {
-	for _, op := range ops {
-		switch op.Type {
-		case AddTask:
-			o := AddTaskOperation{}
-			if err := json.Unmarshal([]byte(op.Content), &o); err != nil {
-				return ErrContentFormat
-			}
+// SaveOperations iterates through list of operation to persist data changes
+// TODO: handle error when a task operations can not finished
+func (s *Service) SaveOperations(userID int, ops []Operation) []error {
+	var errs []error
 
-			t := o.CopyToTask()
-			t.UserID = userID
-			_, err := s.r.CreateTask(t)
-			if err != nil {
-				return err
+	// Group operations by operation ID (task ID)
+	groups := groupByID(ops)
+	logrus.Info(groups)
+
+	// Iterate through all groups
+	for _, ops := range groups {
+		var task Task
+		for _, op := range ops {
+			switch op.Type {
+			case AddTask:
+				task = op.Content.CopyToTask()
+				task.ID = op.ID
+				task.UserID = userID
+				task.CreatedAt = op.StartedAt
+			case UpdateTask:
+				// Check if task is not created or retrieved before, try to get from storage
+				if len(task.ID) == 0 {
+					t, found := s.r.GetTaskByID(userID, op.ID)
+					if found == false {
+						errs = append(errs, ErrTaskNotFound)
+						break
+					}
+					task = t
+				}
+				// Update operation data to current task
+				task = op.Content.UpdateToTask(task)
+				task.UpdatedAt = op.StartedAt
+			case RemoveTask:
+				// Check if task is not created or retrieved before, try to get from storage
+				if len(task.ID) == 0 {
+					t, found := s.r.GetTaskByID(userID, op.ID)
+					if found == false {
+						errs = append(errs, ErrTaskNotFound)
+						break
+					}
+					task = t
+				}
+				task.Deleted = true
+				task.DeletedAt = ptrTime(time.Now())
+			case CompleteTask:
+				// Check if task is not created or retrieved before, try to get from storage
+				if len(task.ID) == 0 {
+					t, found := s.r.GetTaskByID(userID, op.ID)
+					if found == false {
+						errs = append(errs, ErrTaskNotFound)
+						break
+					}
+					task = t
+				}
+				task.Completed = true
+				task.CompletedAt = ptrTime(time.Now())
+			default:
+				errs = append(errs, ErrOperationType)
 			}
-		case UpdateTask:
-		case RemoveTask:
-		case CompleteTask:
-			o := CompleteTaskOperation{}
-			if err := json.Unmarshal([]byte(op.Content), &o); err != nil {
-				return ErrContentFormat
-			}
-			s.r.MarkCompleteTaskByID(o.ID)
-		default:
-			return ErrOperationType
+		}
+
+		if _, err := s.r.CreateOrUpdateTask(task); err != nil {
+			errs = append(errs, err)
 		}
 	}
-	return nil
+
+	return errs
+}
+
+func groupByID(ops []Operation) map[string][]Operation {
+	groups := make(map[string][]Operation)
+	for _, op := range ops {
+		groups[op.ID] = append(groups[op.ID], op)
+	}
+	return groups
+}
+
+func ptrTime(t time.Time) *time.Time {
+	return &t
 }

@@ -7,18 +7,17 @@ const (
 	RemoveTask   = "REMOVE_TASK"
 	UpdateTask   = "UPDATE_TASK"
 	CompleteTask = "COMPLETE_TASK"
-
-	TaskStatusActive  = "active"
-	TaskSTatusDeleted = "deleted"
 )
 
 // Operation records user actions
 type Operation struct {
-	Type    string
-	Content string
+	ID        string // Target task ID
+	Type      string
+	Content   *OperationContent
+	StartedAt time.Time
 }
 
-type AddTaskOperation struct {
+type OperationContent struct {
 	Content  string
 	Note     string
 	Start    *time.Time
@@ -27,27 +26,8 @@ type AddTaskOperation struct {
 	Order    int
 }
 
-type RemoveTaskOperation struct {
-	ID int
-}
-
-type UpdateTaskOperation struct {
-	ID       int
-	Content  string
-	Note     string
-	Start    *time.Time
-	Reminder *time.Time
-	Deadline *time.Time
-	Order    int
-}
-
-type CompleteTaskOperation struct {
-	ID int
-}
-
-// Task ...
 type Task struct {
-	ID          int
+	ID          string
 	UserID      int
 	TaskGroupID int
 	TaskGoalID  int
@@ -58,14 +38,14 @@ type Task struct {
 	Deadline    *time.Time
 	Order       int
 	Completed   bool
-	Status      string
+	Deleted     bool
+	DeletedAt   *time.Time
 	CompletedAt *time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
 
-// CopyToTask ...
-func (o AddTaskOperation) CopyToTask() Task {
+func (o OperationContent) CopyToTask() Task {
 	return Task{
 		Content:  o.Content,
 		Note:     o.Note,
@@ -73,6 +53,15 @@ func (o AddTaskOperation) CopyToTask() Task {
 		Reminder: o.Reminder,
 		Deadline: o.Deadline,
 		Order:    o.Order,
-		Status:   TaskStatusActive,
 	}
+}
+
+func (o OperationContent) UpdateToTask(task Task) Task {
+	task.Content = o.Content
+	task.Note = o.Note
+	task.Start = o.Start
+	task.Reminder = o.Reminder
+	task.Deadline = o.Deadline
+	task.Order = o.Order
+	return task
 }
