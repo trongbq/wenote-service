@@ -1,14 +1,7 @@
 package operation
 
 import (
-	"errors"
 	"time"
-)
-
-var (
-	ErrOperationType = errors.New("Invalid operation type")
-	ErrContentFormat = errors.New("Error content format")
-	ErrTaskNotFound  = errors.New("Error task not found")
 )
 
 // Repository ...
@@ -39,6 +32,7 @@ func (s *Service) SaveOperations(userID int, ops []Operation) []error {
 	for _, ops := range groups {
 		var task Task
 		var found bool
+	outer:
 		for _, op := range ops {
 			switch op.Type {
 			case AddTask:
@@ -49,8 +43,8 @@ func (s *Service) SaveOperations(userID int, ops []Operation) []error {
 			case UpdateTask:
 				if len(task.ID) == 0 {
 					if task, found = s.r.GetTaskByID(userID, op.ID); found == false {
-						errs = append(errs, ErrTaskNotFound)
-						break
+						errs = append(errs, TaskNotFoundError{op.ID})
+						break outer
 					}
 				}
 				// Update operation data to current task
@@ -59,8 +53,8 @@ func (s *Service) SaveOperations(userID int, ops []Operation) []error {
 			case RemoveTask:
 				if len(task.ID) == 0 {
 					if task, found = s.r.GetTaskByID(userID, op.ID); found == false {
-						errs = append(errs, ErrTaskNotFound)
-						break
+						errs = append(errs, TaskNotFoundError{op.ID})
+						break outer
 					}
 				}
 				task.Deleted = true
@@ -68,19 +62,21 @@ func (s *Service) SaveOperations(userID int, ops []Operation) []error {
 			case CompleteTask:
 				if len(task.ID) == 0 {
 					if task, found = s.r.GetTaskByID(userID, op.ID); found == false {
-						errs = append(errs, ErrTaskNotFound)
-						break
+						errs = append(errs, TaskNotFoundError{op.ID})
+						break outer
 					}
 				}
 				task.Completed = true
 				task.CompletedAt = ptrTime(time.Now())
 			default:
-				errs = append(errs, ErrOperationType)
+				errs = append(errs, TypeError{op.ID, op.Type})
 			}
 		}
 
-		if _, err := s.r.CreateOrUpdateTask(task); err != nil {
-			errs = append(errs, err)
+		if len(task.ID) != 0 {
+			if _, err := s.r.CreateOrUpdateTask(task); err != nil {
+				errs = append(errs, SaveOperationError{task.ID, err.Error()})
+			}
 		}
 	}
 

@@ -121,7 +121,7 @@ func (s *Storage) DeleteOauthTokenByUserID(userID int) error {
 	return s.db.Where("user_id = ?", userID).Delete(OauthToken{}).Error
 }
 
-// CreateTask from service model
+// CreateOrUpdateTask creates or updates task
 func (s *Storage) CreateOrUpdateTask(t operation.Task) (operation.Task, error) {
 	task := CopyTaskFromServiceModel(t)
 	task.UpdatedAt = time.Now()
@@ -132,7 +132,7 @@ func (s *Storage) CreateOrUpdateTask(t operation.Task) (operation.Task, error) {
 	return task.CopyToServiceModel(), nil
 }
 
-// GetOauthTokenByUserID ...
+// GetOauthTokenByUserID returns a task of user with specific ID
 func (s *Storage) GetTaskByID(userID int, id string) (operation.Task, bool) {
 	var task Task
 

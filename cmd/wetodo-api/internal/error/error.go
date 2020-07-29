@@ -12,6 +12,7 @@ const (
 	ErrorCodeNotFound      = "NOT_FOUND"
 	ErrorCodeNotImplement  = "NOT_IMPLEMENT"
 	ErrorCodeInternalError = "INTERNAL_ERROR"
+	ErrorCodeUnknown       = "UNKNOWN_ERROR"
 )
 
 // Error struct for rest response
