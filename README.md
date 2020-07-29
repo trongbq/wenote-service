@@ -1,5 +1,5 @@
-# wenote-service
-API service for WeNote app
+# wetodo-service
+API service for WeTodo app
 
 ### How to run
 Check out the `Makefile`
