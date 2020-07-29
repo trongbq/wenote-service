@@ -56,7 +56,6 @@ func (s *Service) SaveOperations(userID int, ops []Operation) []error {
 						break outer
 					}
 				}
-				task.Deleted = true
 				task.DeletedAt = ptrTime(time.Now())
 			case CompleteTask:
 				if len(task.ID) == 0 {
@@ -65,7 +64,6 @@ func (s *Service) SaveOperations(userID int, ops []Operation) []error {
 						break outer
 					}
 				}
-				task.Completed = true
 				task.CompletedAt = ptrTime(time.Now())
 			default:
 				errs = append(errs, TypeError{op.ID, op.Type})

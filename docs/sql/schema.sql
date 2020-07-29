@@ -39,9 +39,7 @@ CREATE TABLE `task`
     `reminder`      TIMESTAMP,
     `deadline`      TIMESTAMP,
     `order`         INT(10)       NOT NULL,
-    `completed`     BOOLEAN                DEFAULT FALSE,
     `completed_at`  TIMESTAMP,
-    `deleted`       BOOLEAN       NOT NULL DEFAULT FALSE,
     `deleted_at`    TIMESTAMP,
     `created_at`    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -55,7 +53,6 @@ CREATE TABLE `checklist`
     `task_id`      VARBINARY(16) NOT NULL,
     `content`      VARCHAR(100)  NOT NULL DEFAULT '',
     `order`        INT(10)       NOT NULL,
-    `completed`    BOOLEAN                DEFAULT FALSE,
     `completed_at` TIMESTAMP,
     `created_at`   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -91,7 +88,6 @@ CREATE TABLE `task_category`
     `user_id`    INT           NOT NULL,
     `name`       VARCHAR(100)  NOT NULL DEFAULT '',
     `order`      INT(10)       NOT NULL,
-    `deleted`    BOOLEAN       NOT NULL DEFAULT FALSE,
     `deleted_at` TIMESTAMP,
     `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -110,9 +106,7 @@ CREATE TABLE `task_goal`
     `reminder`     TIMESTAMP,
     `deadline`     TIMESTAMP,
     `order`        INT(10)       NOT NULL,
-    `completed`    BOOLEAN                DEFAULT FALSE,
     `completed_at` TIMESTAMP,
-    `deleted`      BOOLEAN       NOT NULL DEFAULT FALSE,
     `deleted_at`   TIMESTAMP,
     `created_at`   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

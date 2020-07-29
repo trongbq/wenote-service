@@ -67,8 +67,6 @@ type Task struct {
 	Reminder    *time.Time
 	Deadline    *time.Time
 	Order       int
-	Completed   bool
-	Deleted     bool
 	DeletedAt   *time.Time
 	CompletedAt *time.Time
 	CreatedAt   time.Time
@@ -88,8 +86,6 @@ func (t *Task) CopyToServiceModel() operation.Task {
 		Reminder:    t.Reminder,
 		Deadline:    t.Deadline,
 		Order:       t.Order,
-		Completed:   t.Completed,
-		Deleted:     t.Deleted,
 		DeletedAt:   t.DeletedAt,
 		CompletedAt: t.CompletedAt,
 		CreatedAt:   t.CreatedAt,
@@ -110,8 +106,6 @@ func CopyTaskFromServiceModel(t operation.Task) Task {
 		Reminder:    t.Reminder,
 		Deadline:    t.Deadline,
 		Order:       t.Order,
-		Completed:   t.Completed,
-		Deleted:     t.Deleted,
 		DeletedAt:   t.DeletedAt,
 		CompletedAt: t.CompletedAt,
 		CreatedAt:   t.CreatedAt,
