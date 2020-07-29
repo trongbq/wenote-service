@@ -37,8 +37,6 @@ type Task struct {
 	Reminder    *time.Time
 	Deadline    *time.Time
 	Order       int
-	Completed   bool
-	Deleted     bool
 	DeletedAt   *time.Time
 	CompletedAt *time.Time
 	CreatedAt   time.Time
