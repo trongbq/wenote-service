@@ -21,7 +21,6 @@ func NewService(r Repository) *Service {
 }
 
 // SaveOperations iterates through list of operation to persist data changes
-// TODO: handle error when a task operations can not finished
 func (s *Service) SaveOperations(userID int, ops []Operation) []error {
 	var errs []error
 
