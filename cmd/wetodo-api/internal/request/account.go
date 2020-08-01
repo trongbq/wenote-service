@@ -1,8 +1,6 @@
 package request
 
-import (
-	"wetodo/internal/user"
-)
+import "wetodo/internal/storage"
 
 // RegisterRequest contains request data for SignUp handler
 type RegisterRequest struct {
@@ -23,8 +21,8 @@ type RefreshOauthTokenRequest struct {
 }
 
 // CopyToModel ...
-func (r RegisterRequest) CopyToModel() user.User {
-	return user.User{
+func (r RegisterRequest) CopyToModel() storage.User {
+	return storage.User{
 		Name:     r.Name,
 		Email:    r.Email,
 		Password: r.Password,

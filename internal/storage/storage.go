@@ -1,11 +1,9 @@
 package storage
 
 import (
-	uuid "github.com/satori/go.uuid"
 	"time"
-	"wetodo/internal/account"
-	"wetodo/internal/operation"
-	"wetodo/internal/user"
+
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/spf13/viper"
 
@@ -35,15 +33,15 @@ func NewStorage() (*Storage, error) {
 }
 
 // GetAllUsers return all user in db
-func (s *Storage) GetAllUsers() []user.User {
-	var users []user.User
+func (s *Storage) GetAllUsers() []User {
+	var users []User
 	s.db.Find(&users)
 	return users
 }
 
 // GetUserByID return single user contains matched ID
-func (s *Storage) GetUserByID(id int) (user.User, bool) {
-	var user user.User
+func (s *Storage) GetUserByID(id int) (User, bool) {
+	var user User
 	if s.db.First(&user, id).RecordNotFound() {
 		return user, false
 	}
@@ -51,8 +49,8 @@ func (s *Storage) GetUserByID(id int) (user.User, bool) {
 }
 
 // GetUserByEmail return single user contains matched email
-func (s *Storage) GetUserByEmail(email string) (user.User, bool) {
-	var user user.User
+func (s *Storage) GetUserByEmail(email string) (User, bool) {
+	var user User
 	if s.db.Where("email = ?", email).First(&user).RecordNotFound() {
 		return user, false
 	}
@@ -60,23 +58,23 @@ func (s *Storage) GetUserByEmail(email string) (user.User, bool) {
 }
 
 // CreateUser save user data into DB
-func (s *Storage) CreateUser(u user.User) (user.User, error) {
-	uStorage := User{
+func (s *Storage) CreateUser(u User) (User, error) {
+	user := User{
 		Name:      u.Name,
 		Email:     u.Email,
 		Password:  u.Password,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
-	if err := s.db.Save(&uStorage).Error; err != nil {
+	if err := s.db.Save(&user).Error; err != nil {
 		return u, err
 	}
-	return uStorage.CopyToModel(), nil
+	return user, nil
 }
 
 // GetOauthTokenByUserID ...
-func (s *Storage) GetOauthTokenByUserID(userID int) (account.OauthToken, bool) {
-	var auth account.OauthToken
+func (s *Storage) GetOauthTokenByUserID(userID int) (OauthToken, bool) {
+	var auth OauthToken
 	if s.db.Where("user_id = ?", userID).First(&auth).RecordNotFound() {
 		return auth, false
 	}
@@ -84,8 +82,8 @@ func (s *Storage) GetOauthTokenByUserID(userID int) (account.OauthToken, bool) {
 }
 
 // CreateOauthToken ...
-func (s *Storage) CreateOauthToken(auth account.OauthToken) (account.OauthToken, error) {
-	at := OauthToken{
+func (s *Storage) CreateOauthToken(auth OauthToken) (OauthToken, error) {
+	authToken := OauthToken{
 		UserID:       auth.UserID,
 		AccessToken:  auth.AccessToken,
 		ExpiresAt:    auth.ExpiresAt,
@@ -93,15 +91,15 @@ func (s *Storage) CreateOauthToken(auth account.OauthToken) (account.OauthToken,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
-	if err := s.db.Save(&at).Error; err != nil {
+	if err := s.db.Save(&authToken).Error; err != nil {
 		return auth, err
 	}
-	return at.CopyToModel(), nil
+	return authToken, nil
 }
 
 // UpdateOauthToken ...
-func (s *Storage) UpdateOauthToken(auth account.OauthToken) (account.OauthToken, error) {
-	at := OauthToken{
+func (s *Storage) UpdateOauthToken(auth OauthToken) (OauthToken, error) {
+	authToken := OauthToken{
 		ID:           auth.ID,
 		UserID:       auth.UserID,
 		AccessToken:  auth.AccessToken,
@@ -110,10 +108,10 @@ func (s *Storage) UpdateOauthToken(auth account.OauthToken) (account.OauthToken,
 		CreatedAt:    auth.CreatedAt,
 		UpdatedAt:    time.Now(),
 	}
-	if err := s.db.Save(&at).Error; err != nil {
+	if err := s.db.Save(&authToken).Error; err != nil {
 		return auth, err
 	}
-	return at.CopyToModel(), nil
+	return authToken, nil
 }
 
 // DeleteOauthTokenByUserID deletes user credentials
@@ -122,29 +120,30 @@ func (s *Storage) DeleteOauthTokenByUserID(userID int) error {
 }
 
 // CreateOrUpdateTask creates or updates task
-func (s *Storage) CreateOrUpdateTask(t operation.Task) (operation.Task, error) {
-	task := CopyTaskFromServiceModel(t)
+func (s *Storage) CreateOrUpdateTask(t Task) (Task, error) {
+	task := t.CopyToInternalModel()
 	task.UpdatedAt = time.Now()
+
 	if err := s.db.Save(&task).Error; err != nil {
-		return task.CopyToServiceModel(), err
+		return t, err
 	}
 
-	return task.CopyToServiceModel(), nil
+	return task.CopyToRepModel(), nil
 }
 
 // GetOauthTokenByUserID returns a task of user with specific ID
-func (s *Storage) GetTaskByID(userID int, id string) (operation.Task, bool) {
-	var task Task
+func (s *Storage) GetTaskByID(userID int, id string) (Task, bool) {
+	var task TaskInternal
 
 	uID, err := uuidToBinary(id)
 	if err != nil {
-		return operation.Task{}, false
+		return Task{}, false
 	}
 
 	if s.db.Where("user_id = ? AND id = ?", userID, uID).First(&task).RecordNotFound() {
-		return operation.Task{}, false
+		return Task{}, false
 	}
-	return task.CopyToServiceModel(), true
+	return task.CopyToRepModel(), true
 }
 
 func uuidToBinary(s string) ([]byte, error) {

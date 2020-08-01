@@ -2,12 +2,13 @@ package operation
 
 import (
 	"time"
+	"wetodo/internal/storage"
 )
 
 // Repository ...
 type Repository interface {
-	CreateOrUpdateTask(t Task) (Task, error)
-	GetTaskByID(userID int, ID string) (Task, bool)
+	CreateOrUpdateTask(t storage.Task) (storage.Task, error)
+	GetTaskByID(userID int, ID string) (storage.Task, bool)
 }
 
 // Service ...
@@ -29,7 +30,7 @@ func (s *Service) SaveOperations(userID int, ops []Operation) []error {
 
 	// Iterate through all groups
 	for _, ops := range groups {
-		var task Task
+		var task storage.Task
 		var found bool
 	outer:
 		for _, op := range ops {

@@ -1,11 +1,9 @@
 package storage
 
 import (
-	uuid "github.com/satori/go.uuid"
 	"time"
-	"wetodo/internal/account"
-	"wetodo/internal/operation"
-	"wetodo/internal/user"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 // User type in  GORM
@@ -19,7 +17,7 @@ type User struct {
 	UpdatedAt  time.Time
 }
 
-// OauthToken ...
+// OauthToken represent user authentication token
 type OauthToken struct {
 	ID           int `gorm:"primary_key"`
 	UserID       int
@@ -30,33 +28,25 @@ type OauthToken struct {
 	UpdatedAt    time.Time
 }
 
-// CopyToModel copy data from GORM model to servide model
-func (u User) CopyToModel() user.User {
-	return user.User{
-		ID:         u.ID,
-		Name:       u.Name,
-		Email:      u.Email,
-		Password:   u.Password,
-		PictureURL: u.PictureURL,
-		CreatedAt:  u.CreatedAt,
-		UpdatedAt:  u.UpdatedAt,
-	}
-}
-
-// CopyToModel copy data from GORM model to servide model
-func (o OauthToken) CopyToModel() account.OauthToken {
-	return account.OauthToken{
-		ID:           o.ID,
-		UserID:       o.UserID,
-		AccessToken:  o.AccessToken,
-		ExpiresAt:    o.ExpiresAt,
-		RefreshToken: o.RefreshToken,
-		CreatedAt:    o.CreatedAt,
-		UpdatedAt:    o.UpdatedAt,
-	}
-}
-
+// Task is a task
 type Task struct {
+	ID          string
+	UserID      int
+	TaskGroupID int
+	TaskGoalID  int
+	Content     string
+	Note        string
+	Start       *time.Time
+	Reminder    *time.Time
+	Deadline    *time.Time
+	Order       int
+	DeletedAt   *time.Time
+	CompletedAt *time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type TaskInternal struct {
 	ID          []byte
 	UserID      int
 	TaskGroupID int
@@ -73,10 +63,14 @@ type Task struct {
 	UpdatedAt   time.Time
 }
 
-func (t *Task) CopyToServiceModel() operation.Task {
-	u, _ := uuid.FromBytes(t.ID)
-	return operation.Task{
-		ID:          u.String(),
+func (TaskInternal) TableName() string {
+	return "task"
+}
+
+func (t *Task) CopyToInternalModel() TaskInternal {
+	uID, _ := uuidToBinary(t.ID)
+	return TaskInternal{
+		ID:          uID,
 		UserID:      t.UserID,
 		TaskGroupID: t.TaskGroupID,
 		TaskGoalID:  t.TaskGoalID,
@@ -93,10 +87,10 @@ func (t *Task) CopyToServiceModel() operation.Task {
 	}
 }
 
-func CopyTaskFromServiceModel(t operation.Task) Task {
-	uID, _ := uuidToBinary(t.ID)
+func (t TaskInternal) CopyToRepModel() Task {
+	uID, _ := uuid.FromBytes(t.ID)
 	return Task{
-		ID:          uID,
+		ID:          uID.String(),
 		UserID:      t.UserID,
 		TaskGroupID: t.TaskGroupID,
 		TaskGoalID:  t.TaskGoalID,

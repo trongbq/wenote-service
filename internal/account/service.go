@@ -3,7 +3,7 @@ package account
 import (
 	"fmt"
 	"time"
-	"wetodo/internal/user"
+	"wetodo/internal/storage"
 
 	"github.com/sirupsen/logrus"
 
@@ -12,11 +12,11 @@ import (
 
 // Repository ...
 type Repository interface {
-	GetUserByEmail(email string) (user.User, bool)
-	CreateUser(u user.User) (user.User, error)
-	GetOauthTokenByUserID(userID int) (OauthToken, bool)
-	CreateOauthToken(auth OauthToken) (OauthToken, error)
-	UpdateOauthToken(auth OauthToken) (OauthToken, error)
+	GetUserByEmail(email string) (storage.User, bool)
+	CreateUser(u storage.User) (storage.User, error)
+	GetOauthTokenByUserID(userID int) (storage.OauthToken, bool)
+	CreateOauthToken(auth storage.OauthToken) (storage.OauthToken, error)
+	UpdateOauthToken(auth storage.OauthToken) (storage.OauthToken, error)
 	DeleteOauthTokenByUserID(userID int) error
 }
 
@@ -31,34 +31,34 @@ func NewService(r Repository) *Service {
 }
 
 // Register user
-func (s *Service) Register(u user.User) (OauthToken, error) {
+func (s *Service) Register(u storage.User) (storage.OauthToken, error) {
 	password, err := hashAndSalt(u.Password)
 	if err != nil {
-		return OauthToken{}, err
+		return storage.OauthToken{}, err
 	}
 
 	u.Password = password
 	newUser, err := s.r.CreateUser(u)
 	if err != nil {
-		return OauthToken{}, err
+		return storage.OauthToken{}, err
 	}
 
 	auth, err := generateUserTokens(newUser.ID)
 	if err != nil {
-		return OauthToken{}, ErrFailedGenerateToken
+		return storage.OauthToken{}, ErrFailedGenerateToken
 	}
 	return s.r.CreateOauthToken(auth)
 }
 
 // Login ...
-func (s *Service) Login(email string, password string) (OauthToken, error) {
+func (s *Service) Login(email string, password string) (storage.OauthToken, error) {
 	u, ok := s.r.GetUserByEmail(email)
 	if !ok {
-		return OauthToken{}, ErrUserNotFound
+		return storage.OauthToken{}, ErrUserNotFound
 	}
 
 	if matched := compareHashAndPassword(u.Password, password); !matched {
-		return OauthToken{}, ErrInvalidPassword
+		return storage.OauthToken{}, ErrInvalidPassword
 	}
 
 	token, ok := s.r.GetOauthTokenByUserID(u.ID)
@@ -66,7 +66,7 @@ func (s *Service) Login(email string, password string) (OauthToken, error) {
 		// Generate a new one
 		auth, err := generateUserTokens(u.ID)
 		if err != nil {
-			return OauthToken{}, ErrFailedGenerateToken
+			return storage.OauthToken{}, ErrFailedGenerateToken
 		}
 		return s.r.CreateOauthToken(auth)
 	}
@@ -74,26 +74,26 @@ func (s *Service) Login(email string, password string) (OauthToken, error) {
 }
 
 // RefreshAccessToken validates refresh token and return new access token
-func (s *Service) RefreshAccessToken(refreshToken string) (OauthToken, error) {
+func (s *Service) RefreshAccessToken(refreshToken string) (storage.OauthToken, error) {
 	if !verifyToken(refreshToken) {
-		return OauthToken{}, ErrInvalidRefreshToken
+		return storage.OauthToken{}, ErrInvalidRefreshToken
 	}
 
 	userID, err := ExtractUserIDFromToken(refreshToken)
 	if err != nil {
-		return OauthToken{}, ErrInvalidRefreshToken
+		return storage.OauthToken{}, ErrInvalidRefreshToken
 	}
 
 	auth, ok := s.r.GetOauthTokenByUserID(userID)
 	if !ok {
-		return OauthToken{}, ErrInvalidRefreshToken
+		return storage.OauthToken{}, ErrInvalidRefreshToken
 	}
 
 	// Generate a new access token
 	accessToken, err := generateToken(userID, TokenTypeAccess)
 	if err != nil {
 		fmt.Println(err)
-		return OauthToken{}, ErrFailedGenerateToken
+		return storage.OauthToken{}, ErrFailedGenerateToken
 	}
 	auth.AccessToken = accessToken.Value
 	auth.ExpiresAt = time.Unix(accessToken.ExpiresAt, 0)
@@ -126,18 +126,18 @@ func compareHashAndPassword(h string, p string) bool {
 }
 
 // Generate access token and refresh token for new user
-func generateUserTokens(userID int) (OauthToken, error) {
+func generateUserTokens(userID int) (storage.OauthToken, error) {
 	refreshToken, err := generateToken(userID, TokenTypeRefresh)
 	if err != nil {
 		fmt.Println(err)
-		return OauthToken{}, ErrFailedGenerateToken
+		return storage.OauthToken{}, ErrFailedGenerateToken
 	}
 	accessToken, err := generateToken(userID, TokenTypeAccess)
 	if err != nil {
 		fmt.Println(err)
-		return OauthToken{}, ErrFailedGenerateToken
+		return storage.OauthToken{}, ErrFailedGenerateToken
 	}
-	auth := OauthToken{
+	auth := storage.OauthToken{
 		UserID:       userID,
 		AccessToken:  accessToken.Value,
 		ExpiresAt:    time.Unix(accessToken.ExpiresAt, 0),

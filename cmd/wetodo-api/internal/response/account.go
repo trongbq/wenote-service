@@ -2,7 +2,7 @@ package response
 
 import (
 	"time"
-	"wetodo/internal/account"
+	"wetodo/internal/storage"
 )
 
 // AccountTokenResponse ...
@@ -14,7 +14,7 @@ type AccountTokenResponse struct {
 }
 
 // CopyToAccountRegisterResponse ...
-func CopyToAccountRegisterResponse(u account.OauthToken) AccountTokenResponse {
+func CopyToAccountRegisterResponse(u storage.OauthToken) AccountTokenResponse {
 	return AccountTokenResponse{
 		UserID:       u.UserID,
 		AccessToken:  u.AccessToken,

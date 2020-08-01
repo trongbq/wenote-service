@@ -1,6 +1,9 @@
 package operation
 
-import "time"
+import (
+	"time"
+	"wetodo/internal/storage"
+)
 
 const (
 	AddTask      = "ADD_TASK"
@@ -13,7 +16,7 @@ const (
 type Operation struct {
 	ID        string // Target task ID
 	Type      string
-	Content   *OperationContent
+	Content   *OperationContent // For add or update task
 	StartedAt time.Time
 }
 
@@ -26,25 +29,8 @@ type OperationContent struct {
 	Order    int
 }
 
-type Task struct {
-	ID          string
-	UserID      int
-	TaskGroupID int
-	TaskGoalID  int
-	Content     string
-	Note        string
-	Start       *time.Time
-	Reminder    *time.Time
-	Deadline    *time.Time
-	Order       int
-	DeletedAt   *time.Time
-	CompletedAt *time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-}
-
-func (o OperationContent) CopyToTask() Task {
-	return Task{
+func (o OperationContent) CopyToTask() storage.Task {
+	return storage.Task{
 		Content:  o.Content,
 		Note:     o.Note,
 		Start:    o.Start,
@@ -54,7 +40,7 @@ func (o OperationContent) CopyToTask() Task {
 	}
 }
 
-func (o OperationContent) UpdateToTask(task Task) Task {
+func (o OperationContent) UpdateToTask(task storage.Task) storage.Task {
 	task.Content = o.Content
 	task.Note = o.Note
 	task.Start = o.Start
