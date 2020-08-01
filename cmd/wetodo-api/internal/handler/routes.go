@@ -11,21 +11,21 @@ import (
 
 // ServiceHandler contains all handler of the app to be served under routes
 type ServiceHandler struct {
-	userHandler      *UserHandler
-	accountHandler   *AuthHandler
-	operationHandler *OperationHandler
+	userHandler        *UserHandler
+	accountHandler     *AuthHandler
+	transactionHandler *TransactionHandler
 }
 
 // NewServiceHandler creates new ServiceHandler
 func NewServiceHandler(
 	userHandler *UserHandler,
 	accountHandler *AuthHandler,
-	operationHandler *OperationHandler,
+	transactionHandler *TransactionHandler,
 ) *ServiceHandler {
 	return &ServiceHandler{
 		userHandler,
 		accountHandler,
-		operationHandler,
+		transactionHandler,
 	}
 }
 
@@ -65,10 +65,10 @@ func Routes(router *gin.Engine, handlers *ServiceHandler) {
 			v1User.GET("/:id", handlers.userHandler.GetUserByID)
 		}
 
-		v1Operation := v1.Group("operations")
-		v1Operation.Use(middleware.AuthenticationMiddleware())
+		v1Transaction := v1.Group("transactions")
+		v1Transaction.Use(middleware.AuthenticationMiddleware())
 		{
-			v1Operation.POST("/save", handlers.operationHandler.SaveOperations)
+			v1Transaction.POST("/save", handlers.transactionHandler.SaveTransactions)
 		}
 	}
 	adminV1 := router.Group("/admin/v1")
