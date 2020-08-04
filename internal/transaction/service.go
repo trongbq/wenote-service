@@ -1,12 +1,18 @@
 package transaction
 
 import (
-	"reflect"
-	"strings"
+	"encoding/json"
 	"time"
 	"wetodo/internal/storage"
 
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	typeTaskAdd      = "TASK_ADD"
+	typeTaskUpdate   = "TASK_UPDATE"
+	typeTaskDelete   = "TASK_DELETE"
+	typeTaskComplete = "TASK_COMPLETE"
 )
 
 // Repository ...
@@ -29,93 +35,78 @@ func NewService(r Repository) *Service {
 func (s *Service) SaveTransactions(userID int, transactions []Transaction) []error {
 	var errs []error
 
-	for _, tr := range transactions {
-		switch tr.Entity {
-		case EntityTask:
-			task, found := s.r.GetTaskByID(userID, tr.ID)
-			if found == false {
+	// Group transactions by ID
+	groups := groupByID(transactions)
+
+	// Iterate through all groups
+	for _, trs := range groups {
+		var task storage.Task
+		var found bool
+	outer:
+		for _, tr := range trs {
+			switch tr.Type {
+			case typeTaskAdd:
 				task.ID = tr.ID
 				task.UserID = userID
-			}
-			for _, a := range tr.Actions {
-				if a.Method == MethodSet {
-					setTaskFieldValue(&task, a.Argument)
+				task.CreatedAt = time.Unix(int64(tr.At), 0)
+				// Copy request content to task
+				tc := TaskContent{}
+				err := json.Unmarshal(tr.Args, &tc)
+				if err != nil {
+					errs = append(errs, UnmarshalError{err.Error()})
 				}
+				tc.CopyToTask(&task)
+			case typeTaskUpdate:
+				if len(task.ID) == 0 {
+					if task, found = s.r.GetTaskByID(userID, tr.ID); found == false {
+						errs = append(errs, TaskNotFoundError{tr.ID})
+						break outer
+					}
+				}
+				// Update request data to current task
+				tc := TaskContent{}
+				err := json.Unmarshal(tr.Args, &tc)
+				if err != nil {
+					errs = append(errs, UnmarshalError{err.Error()})
+				}
+				tc.CopyToTask(&task)
+				task.UpdatedAt = time.Unix(int64(tr.At), 0)
+			case typeTaskDelete:
+				if len(task.ID) == 0 {
+					if task, found = s.r.GetTaskByID(userID, tr.ID); found == false {
+						errs = append(errs, TaskNotFoundError{tr.ID})
+						break outer
+					}
+				}
+				task.DeletedAt = ptrTime(time.Unix(int64(tr.At), 0))
+			case typeTaskComplete:
+				if len(task.ID) == 0 {
+					if task, found = s.r.GetTaskByID(userID, tr.ID); found == false {
+						errs = append(errs, TaskNotFoundError{tr.ID})
+						break outer
+					}
+				}
+				task.CompletedAt = ptrTime(time.Unix(int64(tr.At), 0))
+			default:
+				errs = append(errs, TypeError{tr.ID, tr.Type})
 			}
+		}
 
+		if len(task.ID) != 0 {
 			if _, err := s.r.CreateOrUpdateTask(task); err != nil {
 				errs = append(errs, SaveOperationError{task.ID, err.Error()})
 			}
-		default:
-			logrus.Infof("Invalid entity: %v", tr.Entity)
 		}
 	}
-
-	// Group operations by operation ID (task ID)
-	// groups := groupByID(ops)
-
-	// // Iterate through all groups
-	// for _, ops := range groups {
-	// 	var task storage.Task
-	// 	var found bool
-	// outer:
-	// 	for _, op := range ops {
-	// 		switch op.Type {
-	// 		case AddTask:
-	// 			task = op.Content.CopyToTask()
-	// 			task.ID = op.ID
-	// 			task.UserID = userID
-	// 			task.CreatedAt = op.StartedAt
-	// 		case UpdateTask:
-	// 			if len(task.ID) == 0 {
-	// 				if task, found = s.r.GetTaskByID(userID, op.ID); found == false {
-	// 					errs = append(errs, TaskNotFoundError{op.ID})
-	// 					break outer
-	// 				}
-	// 			}
-	// 			// Update operation data to current task
-	// 			task = op.Content.UpdateToTask(task)
-	// 			task.UpdatedAt = op.StartedAt
-	// 		case RemoveTask:
-	// 			if len(task.ID) == 0 {
-	// 				if task, found = s.r.GetTaskByID(userID, op.ID); found == false {
-	// 					errs = append(errs, TaskNotFoundError{op.ID})
-	// 					break outer
-	// 				}
-	// 			}
-	// 			task.DeletedAt = ptrTime(time.Now())
-	// 		case CompleteTask:
-	// 			if len(task.ID) == 0 {
-	// 				if task, found = s.r.GetTaskByID(userID, op.ID); found == false {
-	// 					errs = append(errs, TaskNotFoundError{op.ID})
-	// 					break outer
-	// 				}
-	// 			}
-	// 			task.CompletedAt = ptrTime(time.Now())
-	// 		default:
-	// 			errs = append(errs, TypeError{op.ID, op.Type})
-	// 		}
-	// 	}
-
-	// 	if len(task.ID) != 0 {
-	// 		if _, err := s.r.CreateOrUpdateTask(task); err != nil {
-	// 			errs = append(errs, SaveOperationError{task.ID, err.Error()})
-	// 		}
-	// 	}
-	// }
 
 	logrus.Debugf("Error: %v", errs)
 	return errs
 }
 
-func ptrTime(t time.Time) *time.Time {
-	return &t
-}
-
-func setTaskFieldValue(task *storage.Task, a Argument) {
-	f := reflect.ValueOf(task).Elem().FieldByName(strings.Title(a.Name))
-	t := f.Type().Name()
-	if t == "string" {
-		f.SetString(a.Value)
+func groupByID(transactions []Transaction) map[string][]Transaction {
+	groups := make(map[string][]Transaction)
+	for _, t := range transactions {
+		groups[t.ID] = append(groups[t.ID], t)
 	}
+	return groups
 }

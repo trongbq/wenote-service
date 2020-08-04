@@ -2,6 +2,14 @@ package transaction
 
 import "fmt"
 
+type UnmarshalError struct {
+	err string
+}
+
+func (e UnmarshalError) Error() string {
+	return fmt.Sprintf("Can not unmarshal request content: %v", e.err)
+}
+
 type TaskNotFoundError struct {
 	ID string
 }

@@ -1,35 +1,48 @@
 package transaction
 
 import (
+	"encoding/json"
 	"time"
-)
-
-const (
-	MethodSet    = "SET"
-	MethodDelete = "DELETE"
-
-	EntityTask      = "TASK"
-	EntityChecklist = "Checklist"
-	EntityTaskGoal  = "TaskGoal"
-	EntityTaskGroup = "TaskGroup"
-	EntityTag       = "Tag"
-	EntityTaskTag   = "TaskTag"
+	"wetodo/internal/storage"
 )
 
 type Transaction struct {
-	ID      string
-	Entity  string
-	Actions []Action
+	ID   string
+	Type string
+	Args json.RawMessage
+	At   int
 }
 
-// Action records user actions on specific object
-type Action struct {
-	Method    string
-	Argument  Argument
-	StartedAt time.Time
+type TaskContent struct {
+	Content  string
+	Note     string
+	Start    int
+	Reminder int
+	Deadline int
+	Order    int
 }
 
-type Argument struct {
-	Name  string
-	Value string
+func (tc TaskContent) CopyToTask(t *storage.Task) {
+	if len(tc.Content) != 0 {
+		t.Content = tc.Content
+	}
+	if len(tc.Note) != 0 {
+		t.Note = tc.Note
+	}
+	if tc.Start != 0 {
+		t.Start = ptrTime(time.Unix(int64(tc.Start), 0))
+	}
+	if tc.Reminder != 0 {
+		t.Reminder = ptrTime(time.Unix(int64(tc.Reminder), 0))
+	}
+	if tc.Deadline != 0 {
+		t.Deadline = ptrTime(time.Unix(int64(tc.Deadline), 0))
+	}
+	if tc.Order != 0 {
+		t.Order = tc.Order
+	}
+}
+
+func ptrTime(t time.Time) *time.Time {
+	return &t
 }
