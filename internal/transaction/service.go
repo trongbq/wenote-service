@@ -12,6 +12,14 @@ import (
 type Repository interface {
 	CreateOrUpdateTask(t storage.Task) (storage.Task, error)
 	GetTaskByID(userID int, ID string) (storage.Task, bool)
+	CreateOrUpdateChecklist(cl storage.Checklist) (storage.Checklist, error)
+	GetChecklistByID(userID int, id string) (storage.Checklist, bool)
+	CreateOrUpdateTaskCategory(tc storage.TaskCategory) (storage.TaskCategory, error)
+	GetTaskCategoryByID(userID int, id string) (storage.TaskCategory, bool)
+	CreateOrUpdateTaskGoal(tg storage.TaskGoal) (storage.TaskGoal, error)
+	GetTaskGoalByID(userID int, id string) (storage.TaskGoal, bool)
+	CreateOrUpdateTaskGroup(tg storage.TaskGroup) (storage.TaskGroup, error)
+	GetTaskGroupByID(userID int, id string) (storage.TaskGroup, bool)
 }
 
 // Service ...

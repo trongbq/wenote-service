@@ -131,7 +131,7 @@ func (s *Storage) CreateOrUpdateTask(t Task) (Task, error) {
 	return task.CopyToRepModel(), nil
 }
 
-// GetOauthTokenByUserID returns a task of user with specific ID
+// GetTaskByID returns a task of user with specific ID
 func (s *Storage) GetTaskByID(userID int, id string) (Task, bool) {
 	var task TaskInternal
 
@@ -144,6 +144,114 @@ func (s *Storage) GetTaskByID(userID int, id string) (Task, bool) {
 		return Task{}, false
 	}
 	return task.CopyToRepModel(), true
+}
+
+// CreateOrUpdateChecklist creates or updates checklist
+func (s *Storage) CreateOrUpdateChecklist(cl Checklist) (Checklist, error) {
+	checklist := cl.CopyToInternalModel()
+	checklist.UpdatedAt = time.Now()
+
+	if err := s.db.Save(&checklist).Error; err != nil {
+		return cl, err
+	}
+
+	return checklist.CopyToRepModel(), nil
+}
+
+// GetChecklistByID returns a checklist of user with specific ID
+func (s *Storage) GetChecklistByID(userID int, id string) (Checklist, bool) {
+	var cl ChecklistInternal
+
+	uID, err := uuidToBinary(id)
+	if err != nil {
+		return Checklist{}, false
+	}
+
+	if s.db.Where("user_id = ? AND id = ?", userID, uID).First(&cl).RecordNotFound() {
+		return Checklist{}, false
+	}
+	return cl.CopyToRepModel(), true
+}
+
+// CreateOrUpdateTaskCategory creates or updates task category
+func (s *Storage) CreateOrUpdateTaskCategory(tc TaskCategory) (TaskCategory, error) {
+	taskCat := tc.CopyToInternalModel()
+	taskCat.UpdatedAt = time.Now()
+
+	if err := s.db.Save(&taskCat).Error; err != nil {
+		return tc, err
+	}
+
+	return taskCat.CopyToRepModel(), nil
+}
+
+// GetTaskCategoryByID returns a task category of user with specific ID
+func (s *Storage) GetTaskCategoryByID(userID int, id string) (TaskCategory, bool) {
+	var tc TaskCategoryInternal
+
+	uID, err := uuidToBinary(id)
+	if err != nil {
+		return TaskCategory{}, false
+	}
+
+	if s.db.Where("user_id = ? AND id = ?", userID, uID).First(&tc).RecordNotFound() {
+		return TaskCategory{}, false
+	}
+	return tc.CopyToRepModel(), true
+}
+
+// CreateOrUpdateTaskGoal creates or updates task category
+func (s *Storage) CreateOrUpdateTaskGoal(tg TaskGoal) (TaskGoal, error) {
+	taskGoal := tg.CopyToInternalModel()
+	taskGoal.UpdatedAt = time.Now()
+
+	if err := s.db.Save(&taskGoal).Error; err != nil {
+		return tg, err
+	}
+
+	return taskGoal.CopyToRepModel(), nil
+}
+
+// GetTaskGoalByID returns a task goal of user with specific ID
+func (s *Storage) GetTaskGoalByID(userID int, id string) (TaskGoal, bool) {
+	var tg TaskGoalInternal
+
+	uID, err := uuidToBinary(id)
+	if err != nil {
+		return TaskGoal{}, false
+	}
+
+	if s.db.Where("user_id = ? AND id = ?", userID, uID).First(&tg).RecordNotFound() {
+		return TaskGoal{}, false
+	}
+	return tg.CopyToRepModel(), true
+}
+
+// CreateOrUpdateTaskGroup creates or updates task group
+func (s *Storage) CreateOrUpdateTaskGroup(tg TaskGroup) (TaskGroup, error) {
+	taskGroup := tg.CopyToInternalModel()
+	taskGroup.UpdatedAt = time.Now()
+
+	if err := s.db.Save(&taskGroup).Error; err != nil {
+		return tg, err
+	}
+
+	return taskGroup.CopyToRepModel(), nil
+}
+
+// GetTaskGroupByID returns a task category of user with specific ID
+func (s *Storage) GetTaskGroupByID(userID int, id string) (TaskGroup, bool) {
+	var tg TaskGroupInternal
+
+	uID, err := uuidToBinary(id)
+	if err != nil {
+		return TaskGroup{}, false
+	}
+
+	if s.db.Where("user_id = ? AND id = ?", userID, uID).First(&tg).RecordNotFound() {
+		return TaskGroup{}, false
+	}
+	return tg.CopyToRepModel(), true
 }
 
 func uuidToBinary(s string) ([]byte, error) {
