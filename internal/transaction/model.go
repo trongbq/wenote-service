@@ -43,6 +43,22 @@ func (tc TaskContent) CopyToTask(t *storage.Task) {
 	}
 }
 
+type ChecklistContent struct {
+	taskID  string
+	content string
+	order   int
+}
+
+func (cc ChecklistContent) CopyToChecklist(c *storage.Checklist) {
+	c.TaskID = cc.taskID
+	if len(cc.content) != 0 {
+		c.Content = cc.content
+	}
+	if cc.order != 0 {
+		c.Order = cc.order
+	}
+}
+
 func ptrTime(t time.Time) *time.Time {
 	return &t
 }
