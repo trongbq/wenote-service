@@ -34,10 +34,12 @@ func (h *TransactionHandler) SaveTransactions(c *gin.Context) {
 		info := make(map[string]interface{})
 		for _, err := range errs {
 			switch err.(type) {
-			case transaction.TaskNotFoundError:
-				info[err.(transaction.TaskNotFoundError).ID] = "TaskNotFoundError"
-			case transaction.TypeError:
-				info[err.(transaction.TypeError).ID] = "TypeError"
+			case transaction.RecordNotFoundError:
+				info[err.(transaction.RecordNotFoundError).ID] = "RecordNotFoundError"
+			case transaction.EntityTypeError:
+				info[err.(transaction.EntityTypeError).ID] = "EntityTypeError"
+			case transaction.OperationError:
+				info[err.(transaction.OperationError).ID] = "OperationError"
 			case transaction.SaveOperationError:
 				info[err.(transaction.SaveOperationError).ID] = "SaveOperationError"
 			default:

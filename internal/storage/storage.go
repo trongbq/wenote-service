@@ -159,7 +159,7 @@ func (s *Storage) CreateOrUpdateChecklist(cl Checklist) (Checklist, error) {
 }
 
 // GetChecklistByID returns a checklist of user with specific ID
-func (s *Storage) GetChecklistByID(userID int, id string) (Checklist, bool) {
+func (s *Storage) GetChecklistByID(id string) (Checklist, bool) {
 	var cl ChecklistInternal
 
 	uID, err := uuidToBinary(id)
@@ -167,10 +167,17 @@ func (s *Storage) GetChecklistByID(userID int, id string) (Checklist, bool) {
 		return Checklist{}, false
 	}
 
-	if s.db.Where("user_id = ? AND id = ?", userID, uID).First(&cl).RecordNotFound() {
+	if s.db.Where("id = ?", uID).First(&cl).RecordNotFound() {
 		return Checklist{}, false
 	}
 	return cl.CopyToRepModel(), true
+}
+
+// DeleteChecklistByID delete a checklist by its ID
+func (s *Storage) DeleteChecklistByID(id string) {
+	cl := ChecklistInternal{ID: uuidToBinaryShort(id)}
+
+	s.db.Delete(&cl)
 }
 
 // CreateOrUpdateTaskCategory creates or updates task category
@@ -260,4 +267,13 @@ func uuidToBinary(s string) ([]byte, error) {
 		return []byte{}, err
 	}
 	return u.MarshalBinary()
+}
+
+func uuidToBinaryShort(s string) []byte {
+	u, err := uuid.FromString(s)
+	if err != nil {
+		return []byte{}
+	}
+	v, _ := u.MarshalBinary()
+	return v
 }

@@ -11,29 +11,30 @@ func (e UnmarshalError) Error() string {
 }
 
 type RecordNotFoundError struct {
-	entity string
-	id     string
+	Entity string
+	ID     string
 }
 
 func (e RecordNotFoundError) Error() string {
-	return fmt.Sprintf("%v with ID: %v not found", e.entity, e.id)
+	return fmt.Sprintf("%v with ID: %v not found", e.Entity, e.ID)
 }
 
 type EntityTypeError struct {
-	entity string
+	ID     string
+	Entity string
 }
 
 func (e EntityTypeError) Error() string {
-	return fmt.Sprintf("Invalid entity type: %v", e.entity)
+	return fmt.Sprintf("Invalid entity type: %v on record: %v", e.Entity, e.ID)
 }
 
 type OperationError struct {
-	id        string
-	operation string
+	ID        string
+	Operation string
 }
 
 func (e OperationError) Error() string {
-	return fmt.Sprintf("Invalid operation: %v on record: %v", e.operation, e.id)
+	return fmt.Sprintf("Invalid operation: %v on record: %v", e.Operation, e.ID)
 }
 
 type SaveOperationError struct {

@@ -385,3 +385,11 @@ func (t TaskGroupInternal) CopyToRepModel() TaskGroup {
 		UpdatedAt:  t.UpdatedAt,
 	}
 }
+
+type TaskTagInternal struct {
+	tagID     []byte
+	taskID    []byte
+	Name      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
