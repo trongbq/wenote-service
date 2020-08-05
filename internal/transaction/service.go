@@ -8,13 +8,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	typeTaskAdd      = "TASK_ADD"
-	typeTaskUpdate   = "TASK_UPDATE"
-	typeTaskDelete   = "TASK_DELETE"
-	typeTaskComplete = "TASK_COMPLETE"
-)
-
 // Repository ...
 type Repository interface {
 	CreateOrUpdateTask(t storage.Task) (storage.Task, error)
@@ -36,16 +29,48 @@ func (s *Service) SaveTransactions(userID int, transactions []Transaction) []err
 	var errs []error
 
 	// Group transactions by ID
-	groups := groupByID(transactions)
+	groups := groupByEntityAndRecordID(transactions)
 
 	// Iterate through all groups
-	for _, trs := range groups {
+	for entity, trs := range groups {
+		switch entity {
+		case entityTask:
+			errs = append(errs, s.handleTaskTransactions(userID, trs)...)
+		case entityChecklist:
+		case entityTaskCategory:
+		case entityTaskGoal:
+		case entityTaskGroup:
+		default:
+			errs = append(errs, EntityTypeError{entity})
+		}
+	}
+
+	logrus.Debugf("Error: %v", errs)
+	return errs
+}
+
+// groupByEntityAndRecordID returns map of entity with values is map of record ID -> true transaction data
+func groupByEntityAndRecordID(transactions []Transaction) map[string]map[string][]Transaction {
+	groups := make(map[string]map[string][]Transaction)
+	for _, t := range transactions {
+		if _, ok := groups[t.Entity]; !ok {
+			groups[t.Entity] = make(map[string][]Transaction)
+		}
+		groups[t.Entity][t.ID] = append(groups[t.Entity][t.ID], t)
+	}
+	return groups
+}
+
+func (s *Service) handleTaskTransactions(userID int, all map[string][]Transaction) []error {
+	var errs []error
+
+	for _, trs := range all {
 		var task storage.Task
 		var found bool
 	outer:
 		for _, tr := range trs {
-			switch tr.Type {
-			case typeTaskAdd:
+			switch tr.Operation {
+			case operationAdd:
 				task.ID = tr.ID
 				task.UserID = userID
 				task.CreatedAt = time.Unix(int64(tr.At), 0)
@@ -56,10 +81,10 @@ func (s *Service) SaveTransactions(userID int, transactions []Transaction) []err
 					errs = append(errs, UnmarshalError{err.Error()})
 				}
 				tc.CopyToTask(&task)
-			case typeTaskUpdate:
+			case operationUpdate:
 				if len(task.ID) == 0 {
 					if task, found = s.r.GetTaskByID(userID, tr.ID); found == false {
-						errs = append(errs, TaskNotFoundError{tr.ID})
+						errs = append(errs, RecordNotFoundError{entityTask, tr.ID})
 						break outer
 					}
 				}
@@ -71,24 +96,24 @@ func (s *Service) SaveTransactions(userID int, transactions []Transaction) []err
 				}
 				tc.CopyToTask(&task)
 				task.UpdatedAt = time.Unix(int64(tr.At), 0)
-			case typeTaskDelete:
+			case operationDelete:
 				if len(task.ID) == 0 {
 					if task, found = s.r.GetTaskByID(userID, tr.ID); found == false {
-						errs = append(errs, TaskNotFoundError{tr.ID})
+						errs = append(errs, RecordNotFoundError{entityTask, tr.ID})
 						break outer
 					}
 				}
 				task.DeletedAt = ptrTime(time.Unix(int64(tr.At), 0))
-			case typeTaskComplete:
+			case operationComplete:
 				if len(task.ID) == 0 {
 					if task, found = s.r.GetTaskByID(userID, tr.ID); found == false {
-						errs = append(errs, TaskNotFoundError{tr.ID})
+						errs = append(errs, RecordNotFoundError{entityTask, tr.ID})
 						break outer
 					}
 				}
 				task.CompletedAt = ptrTime(time.Unix(int64(tr.At), 0))
 			default:
-				errs = append(errs, TypeError{tr.ID, tr.Type})
+				errs = append(errs, OperationError{tr.ID, tr.Operation})
 			}
 		}
 
@@ -99,14 +124,5 @@ func (s *Service) SaveTransactions(userID int, transactions []Transaction) []err
 		}
 	}
 
-	logrus.Debugf("Error: %v", errs)
 	return errs
-}
-
-func groupByID(transactions []Transaction) map[string][]Transaction {
-	groups := make(map[string][]Transaction)
-	for _, t := range transactions {
-		groups[t.ID] = append(groups[t.ID], t)
-	}
-	return groups
 }

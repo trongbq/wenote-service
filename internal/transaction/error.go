@@ -10,21 +10,30 @@ func (e UnmarshalError) Error() string {
 	return fmt.Sprintf("Can not unmarshal request content: %v", e.err)
 }
 
-type TaskNotFoundError struct {
-	ID string
+type RecordNotFoundError struct {
+	entity string
+	id     string
 }
 
-func (e TaskNotFoundError) Error() string {
-	return fmt.Sprintf("Task with ID: %v not found", e.ID)
+func (e RecordNotFoundError) Error() string {
+	return fmt.Sprintf("%v with ID: %v not found", e.entity, e.id)
 }
 
-type TypeError struct {
-	ID   string
-	Type string
+type EntityTypeError struct {
+	entity string
 }
 
-func (e TypeError) Error() string {
-	return fmt.Sprintf("Operation with ID: %v contains invalid type: %v", e.ID, e.Type)
+func (e EntityTypeError) Error() string {
+	return fmt.Sprintf("Invalid entity type: %v", e.entity)
+}
+
+type OperationError struct {
+	id        string
+	operation string
+}
+
+func (e OperationError) Error() string {
+	return fmt.Sprintf("Invalid operation: %v on record: %v", e.operation, e.id)
 }
 
 type SaveOperationError struct {

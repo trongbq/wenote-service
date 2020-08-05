@@ -6,11 +6,25 @@ import (
 	"wetodo/internal/storage"
 )
 
+const (
+	entityTask         = "TASK"
+	entityChecklist    = "CHECKLIST"
+	entityTaskCategory = "TASK_CATEGORY"
+	entityTaskGoal     = "TASK_GOAL"
+	entityTaskGroup    = "TASK_GROUP"
+
+	operationAdd      = "ADD"
+	operationUpdate   = "UPDATE"
+	operationDelete   = "DELETE"
+	operationComplete = "COMPLETE"
+)
+
 type Transaction struct {
-	ID   string
-	Type string
-	Args json.RawMessage
-	At   int
+	ID        string
+	Entity    string
+	Operation string
+	Args      json.RawMessage
+	At        int
 }
 
 type TaskContent struct {
