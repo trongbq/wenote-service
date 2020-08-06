@@ -22,6 +22,11 @@ type Repository interface {
 	GetTaskGoalByID(userID int, id string) (storage.TaskGoal, bool)
 	CreateOrUpdateTaskGroup(tg storage.TaskGroup) (storage.TaskGroup, error)
 	GetTaskGroupByID(userID int, id string) (storage.TaskGroup, bool)
+	CreateOrUpdateTag(tg storage.Tag) (storage.Tag, error)
+	GetTagByID(userID int, id string) (storage.Tag, bool)
+	DeleteTagByID(userID int, id string)
+	CreateTaskTag(taskID string, tagID string) error
+	DeleteTaskTagByID(taskID string, tagID string)
 }
 
 // Service ...
@@ -41,6 +46,7 @@ func (s *Service) SaveTransactions(userID int, transactions []Transaction) []err
 
 	// Iterate through all groups
 	for _, tr := range transactions {
+		logrus.Debug(tr)
 		switch tr.Entity {
 		case entityTask:
 			if err := s.handleTaskTransactions(userID, tr); err != nil {
@@ -53,6 +59,14 @@ func (s *Service) SaveTransactions(userID int, transactions []Transaction) []err
 		case entityTaskCategory:
 		case entityTaskGoal:
 		case entityTaskGroup:
+		case entityTag:
+			if err := s.handleTagTransactions(userID, tr); err != nil {
+				errs = append(errs, err)
+			}
+		case entityTaskTag:
+			if err := s.handleTaskTagTransactions(userID, tr); err != nil {
+				errs = append(errs, err)
+			}
 		default:
 			errs = append(errs, EntityTypeError{tr.ID, tr.Entity})
 		}
@@ -137,7 +151,7 @@ func (s *Service) handleChecklistTransactions(tr Transaction) error {
 	case operationUpdate:
 		if len(checklist.ID) == 0 {
 			if checklist, found = s.r.GetChecklistByID(tr.ID); found == false {
-				return RecordNotFoundError{entityTask, tr.ID}
+				return RecordNotFoundError{entityChecklist, tr.ID}
 			}
 		}
 		clc := ChecklistContent{}
@@ -155,7 +169,7 @@ func (s *Service) handleChecklistTransactions(tr Transaction) error {
 	case operationComplete:
 		if len(checklist.ID) == 0 {
 			if checklist, found = s.r.GetChecklistByID(tr.ID); found == false {
-				return RecordNotFoundError{entityTask, tr.ID}
+				return RecordNotFoundError{entityChecklist, tr.ID}
 			}
 		}
 		checklist.CompletedAt = ptrTime(time.Unix(int64(tr.At), 0))
@@ -167,6 +181,71 @@ func (s *Service) handleChecklistTransactions(tr Transaction) error {
 		if _, err := s.r.CreateOrUpdateChecklist(checklist); err != nil {
 			return SaveOperationError{checklist.ID, err.Error()}
 		}
+	}
+
+	return nil
+}
+
+func (s *Service) handleTagTransactions(userID int, tr Transaction) error {
+	var tag storage.Tag
+	var found bool
+
+	switch tr.Operation {
+	case operationAdd:
+		tc := TagContent{}
+		err := json.Unmarshal(tr.Args, &tc)
+		if err != nil {
+			return UnmarshalError{err.Error()}
+		}
+		tag.ID = tr.ID
+		tag.Name = tc.Name
+		tag.UserID = userID
+		tag.CreatedAt = time.Unix(int64(tr.At), 0)
+	case operationUpdate:
+		if len(tag.ID) == 0 {
+			if tag, found = s.r.GetTagByID(userID, tr.ID); found == false {
+				return RecordNotFoundError{entityTag, tr.ID}
+			}
+		}
+		tc := TagContent{}
+		err := json.Unmarshal(tr.Args, &tc)
+		if err != nil {
+			return UnmarshalError{err.Error()}
+		}
+		tag.Name = tc.Name
+	case operationDelete:
+		s.r.DeleteTagByID(userID, tr.ID)
+		return nil
+	default:
+		return OperationError{tr.ID, tr.Operation}
+	}
+
+	if len(tag.ID) != 0 {
+		if _, err := s.r.CreateOrUpdateTag(tag); err != nil {
+			return SaveOperationError{tag.ID, err.Error()}
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) handleTaskTagTransactions(userID int, tr Transaction) error {
+	tt := TaskTagContent{}
+	err := json.Unmarshal(tr.Args, &tt)
+	if err != nil {
+		return UnmarshalError{err.Error()}
+	}
+
+	switch tr.Operation {
+	case operationAdd:
+		if err := s.r.CreateTaskTag(tt.TaskID, tt.TagID); err != nil {
+			return SaveOperationError{tt.TaskID, err.Error()}
+		}
+	case operationDelete:
+		s.r.DeleteTaskTagByID(tt.TaskID, tt.TagID)
+		return nil
+	default:
+		return OperationError{tr.ID, tr.Operation}
 	}
 
 	return nil

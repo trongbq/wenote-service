@@ -387,9 +387,12 @@ func (t TaskGroupInternal) CopyToRepModel() TaskGroup {
 }
 
 type TaskTagInternal struct {
-	tagID     []byte
-	taskID    []byte
-	Name      string
+	TagID     []byte
+	TaskID    []byte
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+func (TaskTagInternal) TableName() string {
+	return "task_tag"
 }

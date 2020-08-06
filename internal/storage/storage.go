@@ -11,6 +11,8 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql" // gorm dialect
 )
 
+// This package need serious refactor and improvement for performance and security
+
 // Storage store db connection
 type Storage struct {
 	db *gorm.DB
@@ -259,6 +261,64 @@ func (s *Storage) GetTaskGroupByID(userID int, id string) (TaskGroup, bool) {
 		return TaskGroup{}, false
 	}
 	return tg.CopyToRepModel(), true
+}
+
+// CreateOrUpdateTaskGroup creates or updates task group
+func (s *Storage) CreateOrUpdateTag(tg Tag) (Tag, error) {
+	tag := tg.CopyToInternalModel()
+	tag.UpdatedAt = time.Now()
+
+	if err := s.db.Save(&tag).Error; err != nil {
+		return tg, err
+	}
+
+	return tag.CopyToRepModel(), nil
+}
+
+// GetTaskGroupByID returns a task category of user with specific ID
+func (s *Storage) GetTagByID(userID int, id string) (Tag, bool) {
+	var tg TagInternal
+
+	uID, err := uuidToBinary(id)
+	if err != nil {
+		return Tag{}, false
+	}
+
+	if s.db.Where("user_id = ? AND id = ?", userID, uID).First(&tg).RecordNotFound() {
+		return Tag{}, false
+	}
+	return tg.CopyToRepModel(), true
+}
+
+// DeleteChecklistByID delete a checklist by its ID
+func (s *Storage) DeleteTagByID(userID int, id string) {
+	uID, _ := uuidToBinary(id)
+	cl := TagInternal{ID: uID}
+	s.db.Where("tag_id = ?", uID).Delete(&TaskTagInternal{})
+	s.db.Delete(&cl)
+}
+
+// CreateOrUpdateTaskGroup creates or updates task group
+func (s *Storage) CreateTaskTag(taskID string, tagID string) error {
+	tt := TaskTagInternal{
+		TaskID:    uuidToBinaryShort(taskID),
+		TagID:     uuidToBinaryShort(tagID),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	if err := s.db.Save(&tt).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteChecklistByID delete a checklist by its ID
+func (s *Storage) DeleteTaskTagByID(taskID string, tagID string) {
+	tt := TaskTagInternal{
+		TaskID: uuidToBinaryShort(taskID),
+		TagID:  uuidToBinaryShort(tagID),
+	}
+	s.db.Delete(&tt)
 }
 
 func uuidToBinary(s string) ([]byte, error) {

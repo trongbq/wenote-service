@@ -78,6 +78,15 @@ func (cc ChecklistContent) CopyToChecklist(c *storage.Checklist) {
 	}
 }
 
+type TagContent struct {
+	Name string
+}
+
+type TaskTagContent struct {
+	TaskID string
+	TagID  string
+}
+
 func ptrTime(t time.Time) *time.Time {
 	return &t
 }
