@@ -5,8 +5,8 @@ import (
 	"wetodo/cmd/wetodo-api/internal/handler"
 	"wetodo/cmd/wetodo-api/log"
 	"wetodo/internal/account"
+	"wetodo/internal/operation"
 	"wetodo/internal/storage"
-	"wetodo/internal/transaction"
 	"wetodo/internal/user"
 
 	"github.com/gin-gonic/gin"
@@ -25,14 +25,14 @@ func main() {
 	// Init services
 	userService := user.NewService(storage)
 	accountService := account.NewService(storage)
-	transactionService := transaction.NewService(storage)
+	operationService := operation.NewService(storage)
 
 	// Init handlers
 	userHandler := handler.NewUserHandler(userService)
 	accountHandler := handler.NewAuthHandler(accountService)
-	transactionHandler := handler.NewTransactionHandler(transactionService)
+	operationHandler := handler.NewOperationHandler(operationService)
 
-	serviceHandler := handler.NewServiceHandler(userHandler, accountHandler, transactionHandler)
+	serviceHandler := handler.NewServiceHandler(userHandler, accountHandler, operationHandler)
 
 	// Setup routes and server
 	router := gin.Default()
