@@ -50,7 +50,7 @@ type TaskGroup struct {
 	ID         string
 	UserID     int
 	TaskGoalID string
-	Name       string
+	Content    string
 	Order      int
 	DeletedAt  *time.Time
 	CreatedAt  time.Time
@@ -61,7 +61,7 @@ type TaskGoal struct {
 	ID          string
 	UserID      int
 	CategoryID  string
-	Name        string
+	Content     string
 	Note        string
 	Start       *time.Time
 	Reminder    *time.Time
@@ -78,7 +78,6 @@ type TaskCategory struct {
 	UserID    int
 	Name      string
 	Order     int
-	DeletedAt *time.Time
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -262,7 +261,6 @@ func (t *TaskCategory) CopyToInternalModel() TaskCategoryInternal {
 		UserID:    t.UserID,
 		Name:      t.Name,
 		Order:     t.Order,
-		DeletedAt: t.DeletedAt,
 		CreatedAt: t.CreatedAt,
 		UpdatedAt: t.UpdatedAt,
 	}
@@ -275,7 +273,6 @@ func (t TaskCategoryInternal) CopyToRepModel() TaskCategory {
 		UserID:    t.UserID,
 		Name:      t.Name,
 		Order:     t.Order,
-		DeletedAt: t.DeletedAt,
 		CreatedAt: t.CreatedAt,
 		UpdatedAt: t.UpdatedAt,
 	}
@@ -285,7 +282,7 @@ type TaskGoalInternal struct {
 	ID          []byte
 	UserID      int
 	CategoryID  []byte
-	Name        string
+	Content     string
 	Note        string
 	Start       *time.Time
 	Reminder    *time.Time
@@ -308,7 +305,7 @@ func (t *TaskGoal) CopyToInternalModel() TaskGoalInternal {
 		ID:          id,
 		UserID:      t.UserID,
 		CategoryID:  cID,
-		Name:        t.Name,
+		Content:     t.Content,
 		Note:        t.Note,
 		Start:       t.Start,
 		Reminder:    t.Reminder,
@@ -328,7 +325,7 @@ func (t TaskGoalInternal) CopyToRepModel() TaskGoal {
 		ID:          id.String(),
 		UserID:      t.UserID,
 		CategoryID:  cID.String(),
-		Name:        t.Name,
+		Content:     t.Content,
 		Note:        t.Note,
 		Start:       t.Start,
 		Reminder:    t.Reminder,
@@ -345,7 +342,7 @@ type TaskGroupInternal struct {
 	ID         []byte
 	UserID     int
 	TaskGoalID []byte
-	Name       string
+	Content    string
 	Order      int
 	DeletedAt  *time.Time
 	CreatedAt  time.Time
@@ -363,7 +360,7 @@ func (t *TaskGroup) CopyToInternalModel() TaskGroupInternal {
 		ID:         id,
 		UserID:     t.UserID,
 		TaskGoalID: tID,
-		Name:       t.Name,
+		Content:    t.Content,
 		Order:      t.Order,
 		DeletedAt:  t.DeletedAt,
 		CreatedAt:  t.CreatedAt,
@@ -378,7 +375,7 @@ func (t TaskGroupInternal) CopyToRepModel() TaskGroup {
 		ID:         id.String(),
 		UserID:     t.UserID,
 		TaskGoalID: tID.String(),
-		Name:       t.Name,
+		Content:    t.Content,
 		Order:      t.Order,
 		DeletedAt:  t.DeletedAt,
 		CreatedAt:  t.CreatedAt,

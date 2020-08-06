@@ -209,6 +209,14 @@ func (s *Storage) GetTaskCategoryByID(userID int, id string) (TaskCategory, bool
 	return tc.CopyToRepModel(), true
 }
 
+// DeleteChecklistByID delete a checklist by its ID
+func (s *Storage) DeleteTaskCategoryByID(userID int, id string) {
+	cl := TaskCategoryInternal{ID: uuidToBinaryShort(id)}
+
+	s.db.Where("user_id = ?", userID).Delete(&cl)
+	// TODO: Reset cat ID for task goal inside this category
+}
+
 // CreateOrUpdateTaskGoal creates or updates task category
 func (s *Storage) CreateOrUpdateTaskGoal(tg TaskGoal) (TaskGoal, error) {
 	taskGoal := tg.CopyToInternalModel()

@@ -18,6 +18,7 @@ type Repository interface {
 	DeleteChecklistByID(id string)
 	CreateOrUpdateTaskCategory(tc storage.TaskCategory) (storage.TaskCategory, error)
 	GetTaskCategoryByID(userID int, id string) (storage.TaskCategory, bool)
+	DeleteTaskCategoryByID(userID int, id string)
 	CreateOrUpdateTaskGoal(tg storage.TaskGoal) (storage.TaskGoal, error)
 	GetTaskGoalByID(userID int, id string) (storage.TaskGoal, bool)
 	CreateOrUpdateTaskGroup(tg storage.TaskGroup) (storage.TaskGroup, error)
@@ -57,8 +58,17 @@ func (s *Service) SaveTransactions(userID int, transactions []Transaction) []err
 				errs = append(errs, err)
 			}
 		case entityTaskCategory:
+			if err := s.handleTaskCategoryTransactions(userID, tr); err != nil {
+				errs = append(errs, err)
+			}
 		case entityTaskGoal:
+			if err := s.handleTaskGoalTransactions(userID, tr); err != nil {
+				errs = append(errs, err)
+			}
 		case entityTaskGroup:
+			if err := s.handleTaskGroupTransaction(userID, tr); err != nil {
+				errs = append(errs, err)
+			}
 		case entityTag:
 			if err := s.handleTagTransactions(userID, tr); err != nil {
 				errs = append(errs, err)
@@ -84,6 +94,7 @@ func (s *Service) handleTaskTransactions(userID int, tr Transaction) error {
 	case operationAdd:
 		task.ID = tr.ID
 		task.UserID = userID
+		task.UpdatedAt = time.Unix(int64(tr.At), 0)
 		task.CreatedAt = time.Unix(int64(tr.At), 0)
 		// Copy request content to task
 		tc := TaskContent{}
@@ -133,6 +144,162 @@ func (s *Service) handleTaskTransactions(userID int, tr Transaction) error {
 	return nil
 }
 
+func (s *Service) handleTaskCategoryTransactions(userID int, tr Transaction) error {
+	var taskCat storage.TaskCategory
+	var found bool
+
+	switch tr.Operation {
+	case operationAdd:
+		taskCat.ID = tr.ID
+		taskCat.UserID = userID
+		taskCat.UpdatedAt = time.Unix(int64(tr.At), 0)
+		taskCat.CreatedAt = time.Unix(int64(tr.At), 0)
+		// Copy request content to task
+		tc := TaskCategoryContent{}
+		err := json.Unmarshal(tr.Args, &tc)
+		if err != nil {
+			return UnmarshalError{err.Error()}
+		}
+		taskCat.Name = tc.Name
+	case operationUpdate:
+		if len(taskCat.ID) == 0 {
+			if taskCat, found = s.r.GetTaskCategoryByID(userID, tr.ID); found == false {
+				return RecordNotFoundError{entityTaskCategory, tr.ID}
+			}
+		}
+		// Update request data to current task
+		tc := TaskCategoryContent{}
+		err := json.Unmarshal(tr.Args, &tc)
+		if err != nil {
+			return UnmarshalError{err.Error()}
+		}
+		taskCat.Name = tc.Name
+		taskCat.UpdatedAt = time.Unix(int64(tr.At), 0)
+	case operationDelete:
+		s.r.DeleteTaskCategoryByID(userID, tr.ID)
+		return nil
+	default:
+		return OperationError{tr.ID, tr.Operation}
+	}
+
+	if len(taskCat.ID) != 0 {
+		if _, err := s.r.CreateOrUpdateTaskCategory(taskCat); err != nil {
+			return SaveOperationError{taskCat.ID, err.Error()}
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) handleTaskGoalTransactions(userID int, tr Transaction) error {
+	var goal storage.TaskGoal
+	var found bool
+
+	switch tr.Operation {
+	case operationAdd:
+		goal.ID = tr.ID
+		goal.UserID = userID
+		goal.UpdatedAt = time.Unix(int64(tr.At), 0)
+		goal.CreatedAt = time.Unix(int64(tr.At), 0)
+		// Copy request content to task
+		tg := TaskGoalContent{}
+		err := json.Unmarshal(tr.Args, &tg)
+		if err != nil {
+			return UnmarshalError{err.Error()}
+		}
+		tg.CopyToTask(&goal)
+	case operationUpdate:
+		if len(goal.ID) == 0 {
+			if goal, found = s.r.GetTaskGoalByID(userID, tr.ID); found == false {
+				return RecordNotFoundError{entityTaskGoal, tr.ID}
+			}
+		}
+		// Update request data to current task
+		tg := TaskGoalContent{}
+		err := json.Unmarshal(tr.Args, &tg)
+		if err != nil {
+			return UnmarshalError{err.Error()}
+		}
+		tg.CopyToTask(&goal)
+		goal.UpdatedAt = time.Unix(int64(tr.At), 0)
+	case operationDelete:
+		if len(goal.ID) == 0 {
+			if goal, found = s.r.GetTaskGoalByID(userID, tr.ID); found == false {
+				return RecordNotFoundError{entityTaskGoal, tr.ID}
+			}
+		}
+		goal.DeletedAt = ptrTime(time.Unix(int64(tr.At), 0))
+	case operationComplete:
+		if len(goal.ID) == 0 {
+			if goal, found = s.r.GetTaskGoalByID(userID, tr.ID); found == false {
+				return RecordNotFoundError{entityTaskGoal, tr.ID}
+			}
+		}
+		goal.CompletedAt = ptrTime(time.Unix(int64(tr.At), 0))
+	default:
+		return OperationError{tr.ID, tr.Operation}
+	}
+
+	if len(goal.ID) != 0 {
+		if _, err := s.r.CreateOrUpdateTaskGoal(goal); err != nil {
+			return SaveOperationError{goal.ID, err.Error()}
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) handleTaskGroupTransaction(userID int, tr Transaction) error {
+	var group storage.TaskGroup
+	var found bool
+
+	switch tr.Operation {
+	case operationAdd:
+		group.ID = tr.ID
+		group.UserID = userID
+		group.UpdatedAt = time.Unix(int64(tr.At), 0)
+		group.CreatedAt = time.Unix(int64(tr.At), 0)
+		// Copy request content to task
+		tg := TaskGroupContent{}
+		err := json.Unmarshal(tr.Args, &tg)
+		if err != nil {
+			return UnmarshalError{err.Error()}
+		}
+		tg.CopyToTask(&group)
+	case operationUpdate:
+		if len(group.ID) == 0 {
+			if group, found = s.r.GetTaskGroupByID(userID, tr.ID); found == false {
+				return RecordNotFoundError{entityTaskGroup, tr.ID}
+			}
+		}
+		// Update request data to current task
+		tg := TaskGroupContent{}
+		err := json.Unmarshal(tr.Args, &tg)
+		if err != nil {
+			return UnmarshalError{err.Error()}
+		}
+		tg.CopyToTask(&group)
+		group.UpdatedAt = time.Unix(int64(tr.At), 0)
+	case operationDelete:
+		if len(group.ID) == 0 {
+			if group, found = s.r.GetTaskGroupByID(userID, tr.ID); found == false {
+				return RecordNotFoundError{entityTaskGroup, tr.ID}
+			}
+		}
+		group.DeletedAt = ptrTime(time.Unix(int64(tr.At), 0))
+	default:
+		return OperationError{tr.ID, tr.Operation}
+	}
+
+	if len(group.ID) != 0 {
+		if _, err := s.r.CreateOrUpdateTaskGroup(group); err != nil {
+			return SaveOperationError{group.ID, err.Error()}
+		}
+	}
+
+	return nil
+}
+
 func (s *Service) handleChecklistTransactions(tr Transaction) error {
 	var checklist storage.Checklist
 	var found bool
@@ -140,6 +307,7 @@ func (s *Service) handleChecklistTransactions(tr Transaction) error {
 	switch tr.Operation {
 	case operationAdd:
 		checklist.ID = tr.ID
+		checklist.UpdatedAt = time.Unix(int64(tr.At), 0)
 		checklist.CreatedAt = time.Unix(int64(tr.At), 0)
 		// Copy request content to task
 		clc := ChecklistContent{}

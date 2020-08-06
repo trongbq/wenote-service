@@ -88,7 +88,6 @@ CREATE TABLE `task_category`
     `user_id`    INT           NOT NULL,
     `name`       VARCHAR(100)  NOT NULL DEFAULT '',
     `order`      INT(10)       NOT NULL,
-    `deleted_at` TIMESTAMP,
     `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE = InnoDB
@@ -100,7 +99,7 @@ CREATE TABLE `task_goal`
     `id`           VARBINARY(16) NOT NULL PRIMARY KEY,
     `user_id`      INT           NOT NULL,
     `cat_id`       VARBINARY(16),
-    `name`         VARCHAR(100)  NOT NULL DEFAULT '',
+    `content`      VARCHAR(100)  NOT NULL DEFAULT '',
     `note`         VARCHAR(255),
     `start`        TIMESTAMP,
     `reminder`     TIMESTAMP,
@@ -120,7 +119,7 @@ CREATE TABLE `task_group`
     `id`           VARBINARY(16) NOT NULL PRIMARY KEY,
     `task_goal_id` VARBINARY(16),
     `user_id`      INT           NOT NULL,
-    `name`         VARCHAR(100)  NOT NULL DEFAULT '',
+    `content`      VARCHAR(100)  NOT NULL DEFAULT '',
     `order`        INT(10)       NOT NULL COMMENT 'Share order with task, treat this entity as a normal task',
     `created_at`   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
