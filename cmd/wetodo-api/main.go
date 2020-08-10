@@ -6,6 +6,8 @@ import (
 	"wetodo/cmd/wetodo-api/log"
 	"wetodo/internal/account"
 	"wetodo/internal/storage"
+	"wetodo/internal/tag"
+	"wetodo/internal/taskcategory"
 	"wetodo/internal/transaction"
 	"wetodo/internal/user"
 
@@ -26,13 +28,22 @@ func main() {
 	userService := user.NewService(storage)
 	accountService := account.NewService(storage)
 	transactionService := transaction.NewService(storage)
+	categoryService := taskcategory.NewService(storage)
+	tagService := tag.NewService(storage)
 
 	// Init handlers
 	userHandler := handler.NewUserHandler(userService)
 	accountHandler := handler.NewAuthHandler(accountService)
 	transactionHandler := handler.NewTransactionHandler(transactionService)
+	categoryHandler := handler.NewTaskCategoryHandler(categoryService)
+	tagHandler := handler.NewTagHandler(tagService)
 
-	serviceHandler := handler.NewServiceHandler(userHandler, accountHandler, transactionHandler)
+	serviceHandler := handler.NewServiceHandler(
+		userHandler,
+		accountHandler,
+		transactionHandler,
+		categoryHandler,
+		tagHandler)
 
 	// Setup routes and server
 	router := gin.Default()

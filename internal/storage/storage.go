@@ -182,6 +182,10 @@ func (s *Storage) DeleteChecklistByID(id string) {
 	s.db.Delete(&cl)
 }
 
+func (s *Storage) GetAllTaskCategoriesByUser(userID int) []TaskCategory {
+	return []TaskCategory{}
+}
+
 // CreateOrUpdateTaskCategory creates or updates task category
 func (s *Storage) CreateOrUpdateTaskCategory(tc TaskCategory) (TaskCategory, error) {
 	taskCat := tc.CopyToInternalModel()
@@ -269,6 +273,10 @@ func (s *Storage) GetTaskGroupByID(userID int, id string) (TaskGroup, bool) {
 		return TaskGroup{}, false
 	}
 	return tg.CopyToRepModel(), true
+}
+
+func (s *Storage) GetAllTagsByUser(userID int) []Tag {
+	return []Tag{}
 }
 
 // CreateOrUpdateTaskGroup creates or updates task group
