@@ -7,6 +7,7 @@ import (
 	"wetodo/internal/account"
 	"wetodo/internal/storage"
 	"wetodo/internal/tag"
+	"wetodo/internal/task"
 	"wetodo/internal/taskcategory"
 	"wetodo/internal/taskgoal"
 	"wetodo/internal/transaction"
@@ -32,6 +33,7 @@ func main() {
 	categoryService := taskcategory.NewService(s)
 	tagService := tag.NewService(s)
 	taskGoalService := taskgoal.NewService(s)
+	taskService := task.NewService(s)
 
 	// Init handlers
 	userHandler := handler.NewUserHandler(userService)
@@ -40,6 +42,7 @@ func main() {
 	categoryHandler := handler.NewTaskCategoryHandler(categoryService)
 	tagHandler := handler.NewTagHandler(tagService)
 	taskGoalHandler := handler.NewTagGoalHandler(taskGoalService)
+	taskHandler := handler.NewTaskHandler(taskService)
 
 	serviceHandler := handler.NewServiceHandler(
 		userHandler,
@@ -47,6 +50,7 @@ func main() {
 		transactionHandler,
 		categoryHandler,
 		taskGoalHandler,
+		taskHandler,
 		tagHandler)
 
 	// Setup routes and server

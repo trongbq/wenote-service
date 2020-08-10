@@ -16,6 +16,7 @@ type ServiceHandler struct {
 	transactionHandler  *TransactionHandler
 	taskCategoryHandler *TaskCategoryHandler
 	taskGoalHandler     *TagGoalHandler
+	taskHandler         *TaskHandler
 	tagHandler          *TagHandler
 }
 
@@ -26,6 +27,7 @@ func NewServiceHandler(
 	transactionHandler *TransactionHandler,
 	taskCategoryHandler *TaskCategoryHandler,
 	taskGoalHandler *TagGoalHandler,
+	taskHandler *TaskHandler,
 	tagHandler *TagHandler,
 ) *ServiceHandler {
 	return &ServiceHandler{
@@ -34,6 +36,7 @@ func NewServiceHandler(
 		transactionHandler,
 		taskCategoryHandler,
 		taskGoalHandler,
+		taskHandler,
 		tagHandler,
 	}
 }
@@ -90,6 +93,12 @@ func Routes(router *gin.Engine, handlers *ServiceHandler) {
 		v1TaskGoal.Use(middleware.AuthenticationMiddleware())
 		{
 			v1TaskGoal.GET("/:id", handlers.taskGoalHandler.GetTaskGoalByID)
+		}
+
+		v1Task := v1.Group("tasks")
+		v1Task.Use(middleware.AuthenticationMiddleware())
+		{
+			v1Task.GET("/", handlers.taskHandler.GetAllTaskByUser)
 		}
 
 		v1Tags := v1.Group("tags")
