@@ -1,9 +1,11 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"wetodo/cmd/wetodo-api/internal/response"
 	"wetodo/internal/tag"
+
+	"github.com/gin-gonic/gin"
 )
 
 type TagHandler struct {
@@ -15,5 +17,6 @@ func NewTagHandler(s *tag.Service) *TagHandler {
 }
 
 func (h *TagHandler) GetAllTagsByUser(c *gin.Context) {
-	c.JSON(http.StatusOK, h.s.GetAllTagsByUser(c.GetInt("UserID")))
+	tags := h.s.GetAllTagsByUser(c.GetInt("UserID"))
+	c.JSON(http.StatusOK, response.CopyToTagListResponse(tags))
 }

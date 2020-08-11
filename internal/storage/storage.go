@@ -275,8 +275,16 @@ func (s *Storage) GetTaskGroupByID(userID int, id string) (TaskGroup, bool) {
 	return tg.CopyToRepModel(), true
 }
 
+// GetAllTagsByUser returns list of tags belong to particular user
 func (s *Storage) GetAllTagsByUser(userID int) []Tag {
-	return []Tag{}
+	ti := make([]TagInternal, 0)
+	s.db.Order("created_at desc").Find(&ti)
+
+	tags := make([]Tag, 0)
+	for _, v := range ti {
+		tags = append(tags, v.CopyToRepModel())
+	}
+	return tags
 }
 
 // CreateOrUpdateTaskGroup creates or updates task group
